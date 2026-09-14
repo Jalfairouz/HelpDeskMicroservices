@@ -1,4 +1,4 @@
-﻿namespace IdentityService.DTOs.Responses;
+﻿namespace UserManagementService.DTOs.Responses;
 
 public class LoginResponse
 {

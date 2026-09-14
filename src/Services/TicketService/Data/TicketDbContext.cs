@@ -11,12 +11,20 @@ public class TicketDbContext : DbContext
     {
     }
 
-    public DbSet<Ticket> Tickets => Set<Ticket>();
-    public DbSet<Comment> Comments => Set<Comment>();
-    public DbSet<TicketHistory> TicketHistories => Set<TicketHistory>();
+    public DbSet<Ticket> Tickets =>
+        Set<Ticket>();
+
+    public DbSet<Comment> Comments =>
+        Set<Comment>();
+
+    public DbSet<TicketHistory> TicketHistories =>
+        Set<TicketHistory>();
+
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Ticket>(entity =>
         {
             entity.HasKey(ticket => ticket.Id);
@@ -31,21 +39,26 @@ public class TicketDbContext : DbContext
 
             entity.Property(ticket => ticket.Type)
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(30);
 
             entity.Property(ticket => ticket.Category)
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(30);
 
             entity.Property(ticket => ticket.Priority)
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(20);
 
             entity.Property(ticket => ticket.Status)
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(20);
 
-            entity.HasIndex(ticket => ticket.CreatedByUserId);
+            entity.HasIndex(ticket =>
+                ticket.CreatedByUserId);
 
             entity.HasIndex(ticket => new
             {
@@ -53,6 +66,7 @@ public class TicketDbContext : DbContext
                 ticket.Status
             });
         });
+
         modelBuilder.Entity<Comment>(entity =>
         {
             entity.HasKey(comment => comment.Id);
@@ -61,20 +75,31 @@ public class TicketDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(2000);
 
-            entity.HasIndex(comment => comment.TicketId);
+            entity.HasIndex(comment =>
+                comment.AuthorUserId);
 
-            entity.HasIndex(comment => comment.AuthorUserId);
+            entity.HasOne<Ticket>()
+                .WithMany()
+                .HasForeignKey(comment =>
+                    comment.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
-        
-        modelBuilder.Entity<TicketHistory>(entity =>  
+
+        modelBuilder.Entity<TicketHistory>(entity =>
         {
             entity.HasKey(history => history.Id);
 
-            entity.Property(history => history.ActionType)
+            entity.Property(history =>
+                    history.ActionType)
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(50);
 
-            entity.HasIndex(history => history.TicketId);
+            entity.HasOne<Ticket>()
+                .WithMany()
+                .HasForeignKey(history =>
+                    history.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

@@ -1,4 +1,4 @@
-﻿
+﻿using TicketService.Domain;
 using TicketService.DTOs.Requests;
 using TicketService.DTOs.Responses;
 using TicketService.Models;
@@ -20,21 +20,42 @@ public class CommentService : ICommentService
         AddCommentRequest request,
         Guid authorUserId)
     {
+        if (string.IsNullOrWhiteSpace(request.Content))
+        {
+            throw new ArgumentException(
+                "Comment content is required.");
+        }
+
+        var now = DateTime.UtcNow;
+
         var comment = new Comment
         {
             TicketId = ticketId,
             AuthorUserId = authorUserId,
-            Content = request.Content.Trim()
+            Content = request.Content.Trim(),
+            CreatedAt = now
         };
 
         await _unitOfWork.Comments.AddAsync(comment);
+
+        var history = new TicketHistory
+        {
+            TicketId = ticketId,
+            PerformedByUserId = authorUserId,
+            ActionType = ActionType.CommentAdded,
+            CreatedAt = now
+        };
+
+        await _unitOfWork.TicketHistories.AddAsync(
+            history);
+
         await _unitOfWork.SaveChangesAsync();
 
         return MapToResponse(comment);
     }
 
-    public async Task<IEnumerable<CommentResponse>> GetByTicketIdAsync(
-        Guid ticketId)
+    public async Task<IEnumerable<CommentResponse>>
+        GetByTicketIdAsync(Guid ticketId)
     {
         var comments = await _unitOfWork.Comments
             .GetByTicketIdAsync(ticketId);
@@ -42,7 +63,8 @@ public class CommentService : ICommentService
         return comments.Select(MapToResponse);
     }
 
-    private static CommentResponse MapToResponse(Comment comment)
+    private static CommentResponse MapToResponse(
+        Comment comment)
     {
         return new CommentResponse
         {

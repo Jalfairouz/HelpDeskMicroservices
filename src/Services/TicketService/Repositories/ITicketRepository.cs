@@ -6,11 +6,13 @@ public interface ITicketRepository
 {
     Task<List<Ticket>> GetAllAsync();
 
+    Task<Ticket?> GetByIdAsync(Guid id);
+
     Task<List<Ticket>> GetByCreatorIdAsync(Guid userId);
 
-    Task<List<Ticket>> GetByTechnicianIdAsync(Guid technicianId);
+    Task<List<Ticket>> GetByTechnicianIdAsync( Guid technicianId);
 
-    Task<Ticket?> GetByIdAsync(Guid id);
+    Task<int> CountActiveByTechnicianIdAsync(Guid technicianId);
 
     Task AddAsync(Ticket ticket);
 

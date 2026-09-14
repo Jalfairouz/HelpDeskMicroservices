@@ -37,6 +37,21 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
 // JWT authentication
+var userManagementUrl =
+    builder.Configuration[
+        "Services:UserManagementService"]
+    ?? throw new InvalidOperationException(
+        "UserManagementService URL is not configured.");
+
+builder.Services.AddHttpClient<UserManagementClient>(
+    client =>
+    {
+        client.BaseAddress =
+            new Uri(userManagementUrl);
+
+        client.Timeout =
+            TimeSpan.FromSeconds(5);
+    });
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException(
         "JWT key is not configured.");

@@ -1,9 +1,9 @@
-using IdentityService.DTOs.Requests;
-using IdentityService.DTOs.Responses;
-using IdentityService.Services;
+using UserManagementService.DTOs.Requests;
+using UserManagementService.DTOs.Responses;
+using UserManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IdentityService.Controllers;
+namespace UserManagementService.Controllers;
 
 [ApiController]
 [Route("api/auth")]

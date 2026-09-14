@@ -30,5 +30,12 @@ public interface ITicketsService
         Guid userId,
         string role);
 
-    Task<bool> DeleteAsync(Guid ticketId);
+    Task<IEnumerable<TicketHistoryResponse>?>
+        GetHistoryAsync(
+            Guid ticketId,
+            Guid userId,
+            string role);
+
+    Task<bool> DeleteAsync(
+        Guid ticketId);
 }

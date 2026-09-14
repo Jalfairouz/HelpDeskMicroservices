@@ -1,8 +1,8 @@
-using IdentityService.Data;
-using IdentityService.Models;
+using UserManagementService.Data;
+using UserManagementService.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using IdentityService.Services;
+using UserManagementService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -75,7 +75,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-
+builder.Services.AddScoped<TechnicianQueryService>();
 
 var app = builder.Build();
 

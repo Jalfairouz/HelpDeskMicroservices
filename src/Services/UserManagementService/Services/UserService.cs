@@ -1,9 +1,9 @@
-﻿using IdentityService.DTOs.Responses;
-using IdentityService.Models;
+﻿using UserManagementService.DTOs.Responses;
+using UserManagementService.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityService.Services;
+namespace UserManagementService.Services;
 
 public class UserService : IUserService
 {

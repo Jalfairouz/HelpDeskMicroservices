@@ -1,9 +1,9 @@
-using IdentityService.Models;
+using UserManagementService.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityService.Data;
+namespace UserManagementService.Data;
 
 public class IdentityDbContext
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>

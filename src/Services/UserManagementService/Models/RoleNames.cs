@@ -1,4 +1,4 @@
-namespace IdentityService.Models;
+namespace UserManagementService.Models;
 
 public static class RoleNames
 {

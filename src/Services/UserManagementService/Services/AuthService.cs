@@ -1,9 +1,9 @@
-using IdentityService.DTOs.Requests;
-using IdentityService.DTOs.Responses;
-using IdentityService.Models;
+using UserManagementService.DTOs.Requests;
+using UserManagementService.DTOs.Responses;
+using UserManagementService.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace IdentityService.Services;
+namespace UserManagementService.Services;
 
 public class AuthService : IAuthService
 {

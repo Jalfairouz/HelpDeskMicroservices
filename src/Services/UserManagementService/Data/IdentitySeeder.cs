@@ -1,7 +1,7 @@
-﻿using IdentityService.Models;
+﻿using UserManagementService.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace IdentityService.Data;
+namespace UserManagementService.Data;
 
 public static class IdentitySeeder
 {

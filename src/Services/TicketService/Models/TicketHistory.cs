@@ -1,4 +1,6 @@
+using TicketService.Domain;
 namespace TicketService.Models;
+
 
 public class TicketHistory
 {

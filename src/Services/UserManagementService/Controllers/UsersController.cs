@@ -1,11 +1,11 @@
-﻿using IdentityService.DTOs.Responses;
-using IdentityService.Services;
+﻿using UserManagementService.DTOs.Responses;
+using UserManagementService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using IdentityService.DTOs.Requests;
-using IdentityService.Models;
-namespace IdentityService.Controllers;
+using UserManagementService.DTOs.Requests;
+using UserManagementService.Models;
+namespace UserManagementService.Controllers;
 
 [ApiController]
 [Route("api/users")]

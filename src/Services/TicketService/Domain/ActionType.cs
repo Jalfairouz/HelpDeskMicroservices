@@ -1,12 +1,12 @@
-namespace TicketService.Models;
+namespace TicketService.Domain;
 
 public enum ActionType
 {
-    Created,           
+    Created,
+    Updated,
     StatusChanged,
-    Assigned,        
-    AssignedBySystem, 
-    Updated,           
-    Closed,          
-    CommentAdded      
+    Assigned,
+    AssignedBySystem,
+    Closed,
+    CommentAdded
 }

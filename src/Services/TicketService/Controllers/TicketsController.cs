@@ -123,7 +123,36 @@ public class TicketsController : ControllerBase
         }
     }
 
+    [HttpGet("{ticketId:guid}/history")]
+    public async Task<ActionResult<IEnumerable<TicketHistoryResponse>>> GetHistory(
+    Guid ticketId)
+    {
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var role = User.FindFirstValue(ClaimTypes.Role);
 
+        if (!Guid.TryParse(userIdValue, out var userId) ||
+            string.IsNullOrWhiteSpace(role))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var history = await _ticketsService.GetHistoryAsync(
+                ticketId, userId, role);
+
+            if (history is null)
+            {
+                return NotFound(new { message = "Ticket not found." });
+            }
+
+            return Ok(history);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+    }
 
     [HttpDelete("{ticketId:guid}")]
     [Authorize(Roles = "Admin")]

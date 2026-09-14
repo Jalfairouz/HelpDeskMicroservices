@@ -1,6 +1,6 @@
-﻿using IdentityService.DTOs.Responses;
+﻿using UserManagementService.DTOs.Responses;
 
-namespace IdentityService.Services;
+namespace UserManagementService.Services;
 
 public interface IUserService
 {
