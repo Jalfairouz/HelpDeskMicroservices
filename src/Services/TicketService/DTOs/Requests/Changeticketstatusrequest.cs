@@ -1,0 +1,11 @@
+﻿using System.ComponentModel.DataAnnotations;
+using TicketService.Domain;
+
+namespace TicketService.DTOs.Requests;
+
+public class ChangeTicketStatusRequest
+{
+    [Required]
+    [EnumDataType(typeof(TicketStatus))]
+    public TicketStatus Status { get; set; }
+}

@@ -1,3 +1,4 @@
+using TicketService.Domain;
 using TicketService.DTOs.Requests;
 using TicketService.DTOs.Responses;
 using TicketService.Models;
@@ -44,12 +45,12 @@ public class TicketsService : ITicketsService
     {
         List<Ticket> tickets;
 
-        if (role == "Admin")
+        if (role == RoleNames.Admin)
         {
             tickets =
                 await _unitOfWork.Tickets.GetAllAsync();
         }
-        else if (role == "Technician")
+        else if (role == RoleNames.Technician)
         {
             tickets =
                 await _unitOfWork.Tickets
@@ -80,12 +81,12 @@ public class TicketsService : ITicketsService
 
         var canAccess = role switch
         {
-            "Admin" => true,
+            RoleNames.Admin => true,
 
-            "Technician" =>
+            RoleNames.Technician =>
                 ticket.AssignedTechnicianId == userId,
 
-            "Employee" =>
+            RoleNames.Employee =>
                 ticket.CreatedByUserId == userId,
 
             _ => false
@@ -114,7 +115,13 @@ public class TicketsService : ITicketsService
             return null;
         }
 
-        if (role == "Employee")
+        if (ticket.Status == TicketStatus.Closed)
+        {
+            throw new InvalidOperationException(
+                "A closed ticket cannot be updated.");
+        }
+
+        if (role == RoleNames.Employee)
         {
             if (ticket.CreatedByUserId != userId)
             {
@@ -128,6 +135,19 @@ public class TicketsService : ITicketsService
                     "Only open tickets can be updated.");
             }
         }
+        else if (role == RoleNames.Technician)
+        {
+            if (ticket.AssignedTechnicianId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You can only update tickets assigned to you.");
+            }
+        }
+        else if (role != RoleNames.Admin)
+        {
+            throw new UnauthorizedAccessException(
+                "You cannot update this ticket.");
+        }
 
         ticket.Title = request.Title.Trim();
         ticket.Description = request.Description.Trim();
@@ -135,6 +155,79 @@ public class TicketsService : ITicketsService
         ticket.Category = request.Category;
         ticket.Priority = request.Priority;
         ticket.UpdatedAt = DateTime.UtcNow;
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return CreateResponse(ticket);
+    }
+
+    public async Task<TicketResponse?> ChangeStatusAsync(
+        Guid ticketId,
+        ChangeTicketStatusRequest request,
+        Guid userId,
+        string role)
+    {
+        var ticket =
+            await _unitOfWork.Tickets.GetByIdAsync(ticketId);
+
+        if (ticket is null)
+        {
+            return null;
+        }
+
+        var newStatus = request.Status;
+
+        if (role == RoleNames.Technician)
+        {
+            if (ticket.AssignedTechnicianId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You can only change the status of tickets assigned to you.");
+            }
+        }
+        else if (role != RoleNames.Admin)
+        {
+            throw new UnauthorizedAccessException(
+                "You cannot change the status of this ticket.");
+        }
+
+        if (ticket.Status == TicketStatus.Closed)
+        {
+            throw new InvalidOperationException(
+                "A closed ticket cannot change status.");
+        }
+
+        if (newStatus == ticket.Status)
+        {
+            throw new InvalidOperationException(
+                $"The ticket is already {ticket.Status}.");
+        }
+
+        var transitionAllowed = (ticket.Status, newStatus) switch
+        {
+            (TicketStatus.Open, TicketStatus.InProgress) => true,
+
+            (TicketStatus.Open, TicketStatus.Closed) =>
+                role == RoleNames.Admin,
+
+            (TicketStatus.InProgress, TicketStatus.Closed) => true,
+
+            _ => false
+        };
+
+        if (!transitionAllowed)
+        {
+            throw new InvalidOperationException(
+                $"Status cannot change from {ticket.Status} to {newStatus}.");
+        }
+
+        ticket.Status = newStatus;
+        ticket.UpdatedAt = DateTime.UtcNow;
+
+        if (newStatus == TicketStatus.Closed)
+        {
+            ticket.ClosedAt = DateTime.UtcNow;
+        }
 
         await _unitOfWork.SaveChangesAsync();
 

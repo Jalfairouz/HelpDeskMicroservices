@@ -17,11 +17,18 @@ public interface ITicketsService
         Guid ticketId,
         Guid userId,
         string role);
+
     Task<TicketResponse?> UpdateAsync(
-    Guid ticketId,
-    UpdateTicketRequest request,
-    Guid userId,
-    string role);
+        Guid ticketId,
+        UpdateTicketRequest request,
+        Guid userId,
+        string role);
+
+    Task<TicketResponse?> ChangeStatusAsync(
+        Guid ticketId,
+        ChangeTicketStatusRequest request,
+        Guid userId,
+        string role);
 
     Task<bool> DeleteAsync(Guid ticketId);
 }

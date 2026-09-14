@@ -12,7 +12,8 @@ public class TicketDbContext : DbContext
     }
 
     public DbSet<Ticket> Tickets => Set<Ticket>();
-
+    public DbSet<Comment> Comments => Set<Comment>();
+    public DbSet<TicketHistory> TicketHistories => Set<TicketHistory>();
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
@@ -51,6 +52,29 @@ public class TicketDbContext : DbContext
                 ticket.AssignedTechnicianId,
                 ticket.Status
             });
+        });
+        modelBuilder.Entity<Comment>(entity =>
+        {
+            entity.HasKey(comment => comment.Id);
+
+            entity.Property(comment => comment.Content)
+                .IsRequired()
+                .HasMaxLength(2000);
+
+            entity.HasIndex(comment => comment.TicketId);
+
+            entity.HasIndex(comment => comment.AuthorUserId);
+        });
+        
+        modelBuilder.Entity<TicketHistory>(entity =>  
+        {
+            entity.HasKey(history => history.Id);
+
+            entity.Property(history => history.ActionType)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            entity.HasIndex(history => history.TicketId);
         });
     }
 }
