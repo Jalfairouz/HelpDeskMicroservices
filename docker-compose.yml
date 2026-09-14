@@ -1,0 +1,30 @@
+services:
+  identity-db:
+    image: postgres:16
+    container_name: helpdesk_identity_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: identity_db
+      POSTGRES_USER: identity_user
+      POSTGRES_PASSWORD: identity_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - identity_data:/var/lib/postgresql/data
+
+  ticket-db:
+    image: postgres:16
+    container_name: helpdesk_ticket_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ticket_db
+      POSTGRES_USER: ticket_user
+      POSTGRES_PASSWORD: ticket_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - ticket_data:/var/lib/postgresql/data
+
+volumes:
+  identity_data:
+  ticket_data:
