@@ -1,3 +1,4 @@
+using TicketService.Domain;
 using TicketService.DTOs.Requests;
 using TicketService.DTOs.Responses;
 using TicketService.Models;

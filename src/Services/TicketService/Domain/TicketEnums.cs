@@ -1,4 +1,4 @@
-namespace TicketService.Models;
+namespace TicketService.Domain;
 
 public enum TicketStatus
 {

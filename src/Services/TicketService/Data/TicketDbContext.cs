@@ -13,7 +13,7 @@ public class TicketDbContext : DbContext
 
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<Comment> Comments => Set<Comment>();
-    public DbSet<ActivityHistory> ActivityHistories => Set<ActivityHistory>();
+    public DbSet<TicketHistory> TicketHistories => Set<TicketHistory>();
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
@@ -65,22 +65,16 @@ public class TicketDbContext : DbContext
 
             entity.HasIndex(comment => comment.AuthorUserId);
         });
-        modelBuilder.Entity<ActivityHistory>(entity =>
+        
+        modelBuilder.Entity<TicketHistory>(entity =>  
         {
-            entity.HasKey(activity => activity.Id);
+            entity.HasKey(history => history.Id);
 
-            entity.Property(activity => activity.ActivityType)
-                .IsRequired()
+            entity.Property(history => history.ActionType)
+                .HasConversion<string>()
                 .HasMaxLength(50);
 
-            entity.Property(activity => activity.OldValue)
-                .HasMaxLength(500);
-
-            entity.Property(activity => activity.NewValue)
-                .HasMaxLength(500);
-
-            
-            entity.HasIndex(activity => activity.TicketId);
+            entity.HasIndex(history => history.TicketId);
         });
     }
 }

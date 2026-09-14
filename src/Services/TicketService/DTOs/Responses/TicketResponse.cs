@@ -1,4 +1,4 @@
-using TicketService.Models;
+using TicketService.Domain;
 
 namespace TicketService.DTOs.Responses;
 

@@ -8,15 +8,19 @@ public class UnitOfWork : IUnitOfWork
 
     public ITicketRepository Tickets { get; }
     public ICommentRepository Comments { get; }
+
+    public ITicketHistoryRepository TicketHistories { get; }
     public UnitOfWork(
         TicketDbContext context,
         ITicketRepository ticketRepository,
-        ICommentRepository commentRepository)
+        ICommentRepository commentRepository,
+        ITicketHistoryRepository ticketHistoryRepository)
 
     {
         _context = context;
         Tickets = ticketRepository;
         Comments = commentRepository;
+        TicketHistories = ticketHistoryRepository;
     }
 
     public async Task<int> SaveChangesAsync()

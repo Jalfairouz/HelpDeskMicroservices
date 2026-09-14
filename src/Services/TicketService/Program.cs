@@ -35,6 +35,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
 // JWT authentication
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException(
