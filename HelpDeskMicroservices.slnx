@@ -1,9 +1,9 @@
 <Solution>
   <Folder Name="/src/" />
   <Folder Name="/src/Services/">
-    <Project Path="src/Services/IdentityService/UserManagementService.csproj" />
     <Project Path="src/Services/NotificationService/NotificationService.csproj" />
     <Project Path="src/Services/TicketService/TicketService.csproj" />
+    <Project Path="src/Services/UserManagementService/UserManagementService.csproj" />
   </Folder>
   <Folder Name="/src/Shared/">
     <Project Path="src/Shared/IntegrationContracts/IntegrationContracts.csproj" />
