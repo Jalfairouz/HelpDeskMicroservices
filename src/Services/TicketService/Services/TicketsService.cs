@@ -67,11 +67,9 @@ public class TicketsService : ITicketsService
                 new TicketHistory
                 {
                     TicketId = ticket.Id,
-                    PerformedByUserId =
-                        selectedTechnicianId.Value,
-                    ActionType =
-                        ActionType.AssignedBySystem,
-                    CreatedAt = now.AddTicks(1)
+                    PerformedByUserId = Guid.Empty,
+                    ActionType = ActionType.AssignedBySystem,
+                    CreatedAt = now.AddMilliseconds(2)
                 });
         }
 
@@ -283,7 +281,7 @@ public class TicketsService : ITicketsService
             {
                 Id = item.Id,
                 TicketId = item.TicketId,
-                PerformedByUserId =item.PerformedByUserId,
+                PerformedByUserId = item.PerformedByUserId == Guid.Empty ? "System" : item.PerformedByUserId.ToString(), 
                 ActionType = item.ActionType,
                 CreatedAt = item.CreatedAt
             });

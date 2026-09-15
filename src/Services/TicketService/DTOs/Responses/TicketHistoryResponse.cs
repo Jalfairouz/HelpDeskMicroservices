@@ -8,7 +8,7 @@ public class TicketHistoryResponse
 
     public Guid TicketId { get; set; }
 
-    public Guid PerformedByUserId { get; set; }
+    public string PerformedByUserId { get; set; } = ""; 
 
     public ActionType ActionType { get; set; }
 
