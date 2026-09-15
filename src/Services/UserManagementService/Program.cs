@@ -13,16 +13,13 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<IdentityDbContext>(options =>
 {
-    var connectionString = builder.Configuration
-        .GetConnectionString("IdentityDatabase");
-
+    var connectionString = builder.Configuration.GetConnectionString("IdentityDatabase");
     options.UseNpgsql(connectionString);
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
     {
         options.User.RequireUniqueEmail = true;
-
         options.Password.RequiredLength = 8;
         options.Password.RequireDigit = true;
         options.Password.RequireUppercase = true;

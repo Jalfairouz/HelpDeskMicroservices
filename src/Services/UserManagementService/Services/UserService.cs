@@ -9,16 +9,14 @@ public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public UserService(
-        UserManager<ApplicationUser> userManager)
+    public UserService(UserManager<ApplicationUser> userManager)
     {
         _userManager = userManager;
     }
 
     public async Task<UserResponse?> GetByIdAsync(Guid userId)
     {
-        var user =
-            await _userManager.FindByIdAsync(userId.ToString());
+        var user = await _userManager.FindByIdAsync(userId.ToString());
 
         if (user is null || !user.IsActive)
         {
@@ -38,16 +36,13 @@ public class UserService : IUserService
 
         foreach (var user in users)
         {
-            responses.Add(
-                await CreateResponseAsync(user));
+            responses.Add( await CreateResponseAsync(user));
         }
 
         return responses;
     }
 
-    public async Task<UserResponse?> ChangeRoleAsync(
-        Guid userId,
-        string newRole)
+    public async Task<UserResponse?> ChangeRoleAsync( Guid userId, string newRole)
     {
         var allowedRoles = new[]
         {
@@ -57,8 +52,7 @@ public class UserService : IUserService
 
         if (!allowedRoles.Contains(newRole))
         {
-            throw new ArgumentException(
-                "Role must be Employee or Technician.");
+            throw new ArgumentException( "Role must be Employee or Technician.");
         }
 
         var user =
@@ -69,12 +63,9 @@ public class UserService : IUserService
             return null;
         }
 
-        if (await _userManager.IsInRoleAsync(
-                user,
-                RoleNames.Admin))
+        if (await _userManager.IsInRoleAsync(user,  RoleNames.Admin))
         {
-            throw new InvalidOperationException(
-                "Admin role cannot be changed.");
+            throw new InvalidOperationException( "Admin role cannot be changed.");
         }
 
         var currentRoles =
@@ -87,15 +78,11 @@ public class UserService : IUserService
 
         if (currentRoles.Count > 0)
         {
-            var removeResult =
-                await _userManager.RemoveFromRolesAsync(
-                    user,
-                    currentRoles);
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
 
             if (!removeResult.Succeeded)
             {
-                throw new InvalidOperationException(
-                    "Could not remove the current role.");
+                throw new InvalidOperationException( "Could not remove the current role.");
             }
         }
 
@@ -104,15 +91,13 @@ public class UserService : IUserService
 
         if (!addResult.Succeeded)
         {
-            throw new InvalidOperationException(
-                "Could not assign the new role.");
+            throw new InvalidOperationException( "Could not assign the new role.");
         }
 
         return await CreateResponseAsync(user);
     }
 
-    private async Task<UserResponse> CreateResponseAsync(
-        ApplicationUser user)
+    private async Task<UserResponse> CreateResponseAsync( ApplicationUser user)
     {
         var roles = await _userManager.GetRolesAsync(user);
 

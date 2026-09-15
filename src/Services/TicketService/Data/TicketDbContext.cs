@@ -5,20 +5,15 @@ namespace TicketService.Data;
 
 public class TicketDbContext : DbContext
 {
-    public TicketDbContext(
-        DbContextOptions<TicketDbContext> options)
-        : base(options)
+    public TicketDbContext( DbContextOptions<TicketDbContext> options): base(options)
     {
     }
 
-    public DbSet<Ticket> Tickets =>
-        Set<Ticket>();
+    public DbSet<Ticket> Tickets =>Set<Ticket>();
 
-    public DbSet<Comment> Comments =>
-        Set<Comment>();
+    public DbSet<Comment> Comments => Set<Comment>();
 
-    public DbSet<TicketHistory> TicketHistories =>
-        Set<TicketHistory>();
+    public DbSet<TicketHistory> TicketHistories => Set<TicketHistory>();
 
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)

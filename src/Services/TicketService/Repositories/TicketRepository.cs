@@ -17,70 +17,51 @@ public class TicketRepository : ITicketRepository
 
     public async Task<List<Ticket>> GetAllAsync()
     {
-        return await _context.Tickets
-            .AsNoTracking()
-            .OrderByDescending(ticket =>
-                ticket.CreatedAt)
+        return await _context.Tickets.AsNoTracking()
+            .OrderByDescending(ticket =>ticket.CreatedAt)
             .ToListAsync();
     }
 
-    public async Task<Ticket?> GetByIdAsync(
-        Guid id)
+    public async Task<Ticket?> GetByIdAsync( Guid id)
     {
         return await _context.Tickets
-            .FirstOrDefaultAsync(ticket =>
-                ticket.Id == id);
+            .FirstOrDefaultAsync(ticket => ticket.Id == id);
     }
 
-    public async Task<List<Ticket>>
-        GetByCreatorIdAsync(Guid userId)
+    public async Task<List<Ticket>> GetByCreatorIdAsync(Guid userId)
     {
         return await _context.Tickets
             .AsNoTracking()
-            .Where(ticket =>
-                ticket.CreatedByUserId == userId)
-            .OrderByDescending(ticket =>
-                ticket.CreatedAt)
+            .Where(ticket =>ticket.CreatedByUserId == userId)
+            .OrderByDescending(ticket => ticket.CreatedAt)
             .ToListAsync();
     }
 
-    public async Task<List<Ticket>>
-        GetByTechnicianIdAsync(Guid technicianId)
+    public async Task<List<Ticket>> GetByTechnicianIdAsync(Guid technicianId)
     {
         return await _context.Tickets
             .AsNoTracking()
-            .Where(ticket =>
-                ticket.AssignedTechnicianId ==
-                technicianId)
-            .OrderByDescending(ticket =>
-                ticket.CreatedAt)
+            .Where(ticket => ticket.AssignedTechnicianId == technicianId)
+            .OrderByDescending(ticket => ticket.CreatedAt)
             .ToListAsync();
     }
 
-    public async Task<int>
-        CountActiveByTechnicianIdAsync(
-            Guid technicianId)
+    public async Task<int> CountActiveByTechnicianIdAsync( Guid technicianId)
     {
         return await _context.Tickets.CountAsync(
-            ticket =>
-                ticket.AssignedTechnicianId ==
-                    technicianId &&
+            ticket => ticket.AssignedTechnicianId == technicianId &&
                 (
-                    ticket.Status ==
-                        TicketStatus.Open ||
-                    ticket.Status ==
-                        TicketStatus.InProgress
+                    ticket.Status == TicketStatus.Open ||
+                    ticket.Status == TicketStatus.InProgress
                 ));
     }
 
-    public async Task AddAsync(
-        Ticket ticket)
+    public async Task AddAsync(Ticket ticket)
     {
         await _context.Tickets.AddAsync(ticket);
     }
 
-    public void Delete(
-        Ticket ticket)
+    public void Delete( Ticket ticket)
     {
         _context.Tickets.Remove(ticket);
     }

@@ -8,9 +8,7 @@ namespace UserManagementService.Data;
 public class IdentityDbContext
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
-    public IdentityDbContext(
-        DbContextOptions<IdentityDbContext> options)
-        : base(options)
+    public IdentityDbContext(  DbContextOptions<IdentityDbContext> options) : base(options)
     {
     }
 

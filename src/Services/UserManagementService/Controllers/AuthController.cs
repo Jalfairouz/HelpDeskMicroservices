@@ -17,17 +17,13 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<UserResponse>> Register(
-        [FromBody] RegisterRequest request)
+    public async Task<ActionResult<UserResponse>> Register( [FromBody] RegisterRequest request)
     {
         try
         {
-            var response =
-                await _authService.RegisterAsync(request);
+            var response =await _authService.RegisterAsync(request);
 
-            return StatusCode(
-                StatusCodes.Status201Created,
-                response);
+            return StatusCode(StatusCodes.Status201Created, response);
         }
         catch (ArgumentException exception)
         {
@@ -50,8 +46,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var response =
-                await _authService.LoginAsync(request);
+            var response = await _authService.LoginAsync(request);
 
             return Ok(response);
         }

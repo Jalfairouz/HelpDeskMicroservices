@@ -22,16 +22,14 @@ public class UsersController : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<UserResponse>> GetMe()
     {
-        var userIdValue =
-            User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!Guid.TryParse(userIdValue, out var userId))
         {
             return Unauthorized();
         }
 
-        var response =
-            await _userService.GetByIdAsync(userId);
+        var response = await _userService.GetByIdAsync(userId);
 
         if (response is null)
         {
@@ -51,15 +49,11 @@ public class UsersController : ControllerBase
 
     [HttpPatch("{userId:guid}/role")]
     [Authorize(Roles = RoleNames.Admin)]
-    public async Task<ActionResult<UserResponse>> ChangeRole(
-        Guid userId,
-        [FromBody] ChangeUserRoleRequest request)
+    public async Task<ActionResult<UserResponse>> ChangeRole(Guid userId, [FromBody] ChangeUserRoleRequest request)
     {
         try
         {
-            var user = await _userService.ChangeRoleAsync(
-                userId,
-                request.Role);
+            var user = await _userService.ChangeRoleAsync( userId, request.Role);
 
             if (user is null)
             {

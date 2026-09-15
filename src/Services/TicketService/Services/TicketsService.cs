@@ -16,26 +16,19 @@ public class TicketsService : ITicketsService
         _userManagementClient = userManagementClient;
     }
 
-    public async Task<TicketResponse> CreateAsync(
-    CreateTicketRequest request,
-    Guid createdByUserId)
+    public async Task<TicketResponse> CreateAsync(CreateTicketRequest request,Guid createdByUserId)
     {
-        var technicians = await _userManagementClient
-            .GetTechniciansAsync();
+        var technicians = await _userManagementClient.GetTechniciansAsync();
 
         Guid? selectedTechnicianId = null;
         int? lowestActiveTickets = null;
 
-        foreach (var technician in technicians
-                     .OrderBy(item => item.Id))
+        foreach (var technician in technicians.OrderBy(item => item.Id))
         {
-            var activeTickets = await _unitOfWork
-                .Tickets
-                .CountActiveByTechnicianIdAsync(
-                    technician.Id);
 
-            if (lowestActiveTickets is null ||
-                activeTickets < lowestActiveTickets)
+            var activeTickets = await _unitOfWork.Tickets.CountActiveByTechnicianIdAsync( technician.Id);
+
+            if (lowestActiveTickets is null || activeTickets < lowestActiveTickets)
             {
                 selectedTechnicianId = technician.Id;
                 lowestActiveTickets = activeTickets;
@@ -53,8 +46,7 @@ public class TicketsService : ITicketsService
             Priority = request.Priority,
             Status = TicketStatus.Open,
             CreatedByUserId = createdByUserId,
-            AssignedTechnicianId =
-                selectedTechnicianId,
+            AssignedTechnicianId = selectedTechnicianId,
             CreatedAt = now
         };
 
@@ -66,7 +58,7 @@ public class TicketsService : ITicketsService
                 TicketId = ticket.Id,
                 PerformedByUserId = createdByUserId,
                 ActionType = ActionType.Created,
-                CreatedAt = now.AddTicks(1)
+                CreatedAt = now
             });
 
         if (selectedTechnicianId.HasValue)
@@ -79,7 +71,7 @@ public class TicketsService : ITicketsService
                         selectedTechnicianId.Value,
                     ActionType =
                         ActionType.AssignedBySystem,
-                    CreatedAt = now
+                    CreatedAt = now.AddTicks(1)
                 });
         }
 
@@ -88,38 +80,29 @@ public class TicketsService : ITicketsService
         return CreateResponse(ticket);
     }
 
-    public async Task<IEnumerable<TicketResponse>> GetAllAsync(
-        Guid userId,
-        string role)
+    public async Task<IEnumerable<TicketResponse>> GetAllAsync(Guid userId, string role)
     {
         List<Ticket> tickets;
 
         if (role == RoleNames.Admin)
         {
-            tickets = await _unitOfWork.Tickets
-                .GetAllAsync();
+            tickets = await _unitOfWork.Tickets.GetAllAsync();
         }
         else if (role == RoleNames.Technician)
         {
-            tickets = await _unitOfWork.Tickets
-                .GetByTechnicianIdAsync(userId);
+            tickets = await _unitOfWork.Tickets.GetByTechnicianIdAsync(userId);
         }
         else
         {
-            tickets = await _unitOfWork.Tickets
-                .GetByCreatorIdAsync(userId);
+            tickets = await _unitOfWork.Tickets.GetByCreatorIdAsync(userId);
         }
 
         return tickets.Select(CreateResponse);
     }
 
-    public async Task<TicketResponse?> GetByIdAsync(
-        Guid ticketId,
-        Guid userId,
-        string role)
+    public async Task<TicketResponse?> GetByIdAsync(Guid ticketId, Guid userId, string role)
     {
-        var ticket = await _unitOfWork.Tickets
-            .GetByIdAsync(ticketId);
+        var ticket = await _unitOfWork.Tickets.GetByIdAsync(ticketId);
 
         if (ticket is null)
         {
@@ -130,32 +113,24 @@ public class TicketsService : ITicketsService
         {
             RoleNames.Admin => true,
 
-            RoleNames.Technician =>
-                ticket.AssignedTechnicianId == userId,
+            RoleNames.Technician => ticket.AssignedTechnicianId == userId,
 
-            RoleNames.Employee =>
-                ticket.CreatedByUserId == userId,
+            RoleNames.Employee => ticket.CreatedByUserId == userId,
 
             _ => false
         };
 
         if (!canAccess)
         {
-            throw new UnauthorizedAccessException(
-                "You cannot access this ticket.");
+            throw new UnauthorizedAccessException( "You cannot access this ticket.");
         }
 
         return CreateResponse(ticket);
     }
 
-    public async Task<TicketResponse?> UpdateAsync(
-        Guid ticketId,
-        UpdateTicketRequest request,
-        Guid userId,
-        string role)
+    public async Task<TicketResponse?> UpdateAsync(Guid ticketId,UpdateTicketRequest request, Guid userId, string role)
     {
-        var ticket = await _unitOfWork.Tickets
-            .GetByIdAsync(ticketId);
+        var ticket = await _unitOfWork.Tickets.GetByIdAsync(ticketId);
 
         if (ticket is null)
         {
@@ -164,36 +139,31 @@ public class TicketsService : ITicketsService
 
         if (ticket.Status == TicketStatus.Closed)
         {
-            throw new InvalidOperationException(
-                "A closed ticket cannot be updated.");
+            throw new InvalidOperationException("A closed ticket cannot be updated.");
         }
 
         if (role == RoleNames.Employee)
         {
             if (ticket.CreatedByUserId != userId)
             {
-                throw new UnauthorizedAccessException(
-                    "You cannot update this ticket.");
+                throw new UnauthorizedAccessException("You cannot update this ticket.");
             }
 
             if (ticket.Status != TicketStatus.Open)
             {
-                throw new InvalidOperationException(
-                    "Only open tickets can be updated.");
+                throw new InvalidOperationException(  "Only open tickets can be updated.");
             }
         }
         else if (role == RoleNames.Technician)
         {
             if (ticket.AssignedTechnicianId != userId)
             {
-                throw new UnauthorizedAccessException(
-                    "You can only update tickets assigned to you.");
+                throw new UnauthorizedAccessException( "You can only update tickets assigned to you.");
             }
         }
         else if (role != RoleNames.Admin)
         {
-            throw new UnauthorizedAccessException(
-                "You cannot update this ticket.");
+            throw new UnauthorizedAccessException( "You cannot update this ticket.");
         }
 
         var now = DateTime.UtcNow;
@@ -220,14 +190,9 @@ public class TicketsService : ITicketsService
         return CreateResponse(ticket);
     }
 
-    public async Task<TicketResponse?> ChangeStatusAsync(
-        Guid ticketId,
-        ChangeTicketStatusRequest request,
-        Guid userId,
-        string role)
+    public async Task<TicketResponse?> ChangeStatusAsync( Guid ticketId,ChangeTicketStatusRequest request, Guid userId,string role)
     {
-        var ticket = await _unitOfWork.Tickets
-            .GetByIdAsync(ticketId);
+        var ticket = await _unitOfWork.Tickets.GetByIdAsync(ticketId);
 
         if (ticket is null)
         {
@@ -240,54 +205,38 @@ public class TicketsService : ITicketsService
         {
             if (ticket.AssignedTechnicianId != userId)
             {
-                throw new UnauthorizedAccessException(
-                    "You can only change the status of tickets assigned to you.");
+                throw new UnauthorizedAccessException("You can only change the status of tickets assigned to you.");
             }
         }
         else if (role != RoleNames.Admin)
         {
-            throw new UnauthorizedAccessException(
-                "You cannot change the status of this ticket.");
+            throw new UnauthorizedAccessException("You cannot change the status of this ticket.");
         }
 
         if (ticket.Status == TicketStatus.Closed)
         {
-            throw new InvalidOperationException(
-                "A closed ticket cannot change status.");
+            throw new InvalidOperationException("A closed ticket cannot change status.");
         }
 
         if (newStatus == ticket.Status)
         {
-            throw new InvalidOperationException(
-                $"The ticket is already {ticket.Status}.");
+            throw new InvalidOperationException( $"The ticket is already {ticket.Status}.");
         }
 
-        var transitionAllowed =
-            (ticket.Status, newStatus) switch
+        var transitionAllowed = (ticket.Status, newStatus) switch
             {
-                (
-                    TicketStatus.Open,
-                    TicketStatus.InProgress
-                ) => true,
+                (TicketStatus.Open, TicketStatus.InProgress) => true,
 
-                (
-                    TicketStatus.Open,
-                    TicketStatus.Closed
-                ) => role == RoleNames.Admin,
+                (TicketStatus.Open, TicketStatus.Closed) => role == RoleNames.Admin,
 
-                (
-                    TicketStatus.InProgress,
-                    TicketStatus.Closed
-                ) => true,
+                (TicketStatus.InProgress, TicketStatus.Closed) => true,
 
                 _ => false
             };
 
         if (!transitionAllowed)
         {
-            throw new InvalidOperationException(
-                $"Status cannot change from " +
-                $"{ticket.Status} to {newStatus}.");
+            throw new InvalidOperationException( $"Status cannot change from " + $"{ticket.Status} to {newStatus}.");
         }
 
         var now = DateTime.UtcNow;
@@ -300,10 +249,7 @@ public class TicketsService : ITicketsService
             ticket.ClosedAt = now;
         }
 
-        var actionType =
-            newStatus == TicketStatus.Closed
-                ? ActionType.Closed
-                : ActionType.StatusChanged;
+        var actionType = newStatus == TicketStatus.Closed ? ActionType.Closed : ActionType.StatusChanged;
 
         var history = new TicketHistory
         {
@@ -320,44 +266,32 @@ public class TicketsService : ITicketsService
         return CreateResponse(ticket);
     }
 
-    public async Task<IEnumerable<TicketHistoryResponse>?>
-    GetHistoryAsync(
-        Guid ticketId,
-        Guid userId,
-        string role)
+    public async Task<IEnumerable<TicketHistoryResponse>?> GetHistoryAsync(Guid ticketId,Guid userId, string role)
     {
         
-        var ticket = await GetByIdAsync(
-            ticketId,
-            userId,
-            role);
+        var ticket = await GetByIdAsync(ticketId, userId, role);
 
         if (ticket is null)
         {
             return null;
         }
 
-        var history = await _unitOfWork
-            .TicketHistories
-            .GetByTicketIdAsync(ticketId);
+        var history = await _unitOfWork.TicketHistories.GetByTicketIdAsync(ticketId);
 
         return history.Select(item =>
             new TicketHistoryResponse
             {
                 Id = item.Id,
                 TicketId = item.TicketId,
-                PerformedByUserId =
-                    item.PerformedByUserId,
+                PerformedByUserId =item.PerformedByUserId,
                 ActionType = item.ActionType,
                 CreatedAt = item.CreatedAt
             });
     }
 
-    public async Task<bool> DeleteAsync(
-        Guid ticketId)
+    public async Task<bool> DeleteAsync(Guid ticketId)
     {
-        var ticket = await _unitOfWork.Tickets
-            .GetByIdAsync(ticketId);
+        var ticket = await _unitOfWork.Tickets.GetByIdAsync(ticketId);
 
         if (ticket is null)
         {
@@ -371,8 +305,7 @@ public class TicketsService : ITicketsService
         return true;
     }
 
-    private static TicketResponse CreateResponse(
-        Ticket ticket)
+    private static TicketResponse CreateResponse(Ticket ticket)
     {
         return new TicketResponse
         {

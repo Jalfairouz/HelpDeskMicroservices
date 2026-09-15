@@ -15,22 +15,16 @@ public class TokenService
         _configuration = configuration;
     }
 
-    public (string Token, DateTime ExpiresAt) GenerateToken(
-        ApplicationUser user,
-        string role)
+    public (string Token, DateTime ExpiresAt) GenerateToken(ApplicationUser user, string role)
     {
-        var key = _configuration["Jwt:Key"]
-            ?? throw new InvalidOperationException(
-                "JWT key is not configured.");
+        var key = _configuration["Jwt:Key"] ?? throw new InvalidOperationException( "JWT key is not configured.");
 
         var issuer = _configuration["Jwt:Issuer"];
         var audience = _configuration["Jwt:Audience"];
 
-        var expirationMinutes =
-            _configuration.GetValue<int>("Jwt:ExpirationMinutes");
+        var expirationMinutes = _configuration.GetValue<int>("Jwt:ExpirationMinutes");
 
-        var expiresAt =
-            DateTime.UtcNow.AddMinutes(expirationMinutes);
+        var expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
 
         var claims = new List<Claim>
         {
@@ -39,12 +33,9 @@ public class TokenService
             new(ClaimTypes.Role, role)
         };
 
-        var securityKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(key));
+        var securityKey = new SymmetricSecurityKey( Encoding.UTF8.GetBytes(key));
 
-        var credentials = new SigningCredentials(
-            securityKey,
-            SecurityAlgorithms.HmacSha256);
+        var credentials = new SigningCredentials( securityKey, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: issuer,
@@ -53,8 +44,7 @@ public class TokenService
             expires: expiresAt,
             signingCredentials: credentials);
 
-        var tokenValue =
-            new JwtSecurityTokenHandler().WriteToken(token);
+        var tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
 
         return (tokenValue, expiresAt);
     }

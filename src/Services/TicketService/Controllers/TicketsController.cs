@@ -25,8 +25,7 @@ public class TicketsController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Employee,Admin")]
-    public async Task<ActionResult<TicketResponse>> Create(
-        [FromBody] CreateTicketRequest request)
+    public async Task<ActionResult<TicketResponse>> Create( [FromBody] CreateTicketRequest request)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var response = await _ticketsService.CreateAsync(request, userId);
@@ -72,9 +71,7 @@ public class TicketsController : ControllerBase
 
     [HttpPut("{ticketId:guid}")]
     [Authorize(Roles = "Employee,Technician,Admin")]
-    public async Task<ActionResult<TicketResponse>> Update(
-        Guid ticketId,
-        [FromBody] UpdateTicketRequest request)
+    public async Task<ActionResult<TicketResponse>> Update(Guid ticketId, [FromBody] UpdateTicketRequest request)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var role = User.FindFirstValue(ClaimTypes.Role)!;
@@ -100,9 +97,7 @@ public class TicketsController : ControllerBase
 
     [HttpPatch("{ticketId:guid}/status")]
     [Authorize(Roles = "Technician,Admin")]
-    public async Task<ActionResult<TicketResponse>> ChangeStatus(
-        Guid ticketId,
-        [FromBody] ChangeTicketStatusRequest request)
+    public async Task<ActionResult<TicketResponse>> ChangeStatus(Guid ticketId, [FromBody] ChangeTicketStatusRequest request)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var role = User.FindFirstValue(ClaimTypes.Role)!;
@@ -124,22 +119,19 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet("{ticketId:guid}/history")]
-    public async Task<ActionResult<IEnumerable<TicketHistoryResponse>>> GetHistory(
-    Guid ticketId)
+    public async Task<ActionResult<IEnumerable<TicketHistoryResponse>>> GetHistory( Guid ticketId)
     {
         var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var role = User.FindFirstValue(ClaimTypes.Role);
 
-        if (!Guid.TryParse(userIdValue, out var userId) ||
-            string.IsNullOrWhiteSpace(role))
+        if (!Guid.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(role))
         {
             return Unauthorized();
         }
 
         try
         {
-            var history = await _ticketsService.GetHistoryAsync(
-                ticketId, userId, role);
+            var history = await _ticketsService.GetHistoryAsync( ticketId, userId, role);
 
             if (history is null)
             {

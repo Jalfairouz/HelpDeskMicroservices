@@ -5,24 +5,19 @@ namespace UserManagementService.Data;
 
 public static class IdentitySeeder
 {
-    public static async Task SeedAsync(
-        IServiceProvider services,
-        IConfiguration configuration)
+    public static async Task SeedAsync( IServiceProvider services, IConfiguration configuration)
     {
         using var scope = services.CreateScope();
 
-        var roleManager = scope.ServiceProvider
-            .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
-        var userManager = scope.ServiceProvider
-            .GetRequiredService<UserManager<ApplicationUser>>();
+        var userManager = scope.ServiceProvider .GetRequiredService<UserManager<ApplicationUser>>();
 
         await CreateRolesAsync(roleManager);
         await CreateAdminAsync(userManager, configuration);
     }
 
-    private static async Task CreateRolesAsync(
-        RoleManager<IdentityRole<Guid>> roleManager)
+    private static async Task CreateRolesAsync(RoleManager<IdentityRole<Guid>> roleManager)
     {
         string[] roles =
         [
@@ -35,8 +30,7 @@ public static class IdentitySeeder
         {
             if (!await roleManager.RoleExistsAsync(roleName))
             {
-                await roleManager.CreateAsync(
-                    new IdentityRole<Guid>(roleName));
+                await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
             }
         }
     }
@@ -48,11 +42,9 @@ public static class IdentitySeeder
         var email = configuration["Admin:Email"];
         var password = configuration["Admin:Password"];
 
-        if (string.IsNullOrWhiteSpace(email) ||
-            string.IsNullOrWhiteSpace(password))
+        if (string.IsNullOrWhiteSpace(email) ||  string.IsNullOrWhiteSpace(password))
         {
-            throw new InvalidOperationException(
-                "Admin settings are missing.");
+            throw new InvalidOperationException( "Admin settings are missing.");
         }
 
         var admin = await userManager.FindByEmailAsync(email);
@@ -70,27 +62,19 @@ public static class IdentitySeeder
                 CreatedAt = DateTime.UtcNow
             };
 
-            var createResult =
-                await userManager.CreateAsync(admin, password);
+            var createResult =await userManager.CreateAsync(admin, password);
 
             if (!createResult.Succeeded)
             {
-                var errors = string.Join(
-                    ", ",
-                    createResult.Errors.Select(
-                        error => error.Description));
+                var errors = string.Join( ", ", createResult.Errors.Select( error => error.Description));
 
                 throw new InvalidOperationException(errors);
             }
         }
 
-        if (!await userManager.IsInRoleAsync(
-                admin,
-                RoleNames.Admin))
+        if (!await userManager.IsInRoleAsync( admin, RoleNames.Admin))
         {
-            await userManager.AddToRoleAsync(
-                admin,
-                RoleNames.Admin);
+            await userManager.AddToRoleAsync( admin,  RoleNames.Admin);
         }
     }
 }

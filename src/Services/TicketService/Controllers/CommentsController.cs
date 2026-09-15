@@ -15,18 +15,14 @@ public class CommentsController : ControllerBase
     private readonly ICommentService _commentService;
     private readonly ITicketsService _ticketsService;
 
-    public CommentsController(
-        ICommentService commentService,
-        ITicketsService ticketsService)
+    public CommentsController(ICommentService commentService, ITicketsService ticketsService)
     {
         _commentService = commentService;
         _ticketsService = ticketsService;
     }
 
     [HttpPost]
-    public async Task<ActionResult<CommentResponse>> AddComment(
-        Guid ticketId,
-        [FromBody] AddCommentRequest request)
+    public async Task<ActionResult<CommentResponse>> AddComment( Guid ticketId, [FromBody] AddCommentRequest request)
     {
         if (!TryGetCaller(out var userId, out var role))
         {
@@ -36,10 +32,7 @@ public class CommentsController : ControllerBase
         try
         {
             
-            var ticket = await _ticketsService.GetByIdAsync(
-                ticketId,
-                userId,
-                role);
+            var ticket = await _ticketsService.GetByIdAsync(ticketId, userId, role);
 
             if (ticket is null)
             {
@@ -49,14 +42,9 @@ public class CommentsController : ControllerBase
                 });
             }
 
-            var comment = await _commentService.AddAsync(
-                ticketId,
-                request,
-                userId);
+            var comment = await _commentService.AddAsync(ticketId, request, userId);
 
-            return StatusCode(
-                StatusCodes.Status201Created,
-                comment);
+            return StatusCode( StatusCodes.Status201Created,comment);
         }
         catch (UnauthorizedAccessException)
         {
@@ -72,8 +60,7 @@ public class CommentsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CommentResponse>>> GetComments(
-        Guid ticketId)
+    public async Task<ActionResult<IEnumerable<CommentResponse>>> GetComments( Guid ticketId)
     {
         if (!TryGetCaller(out var userId, out var role))
         {
@@ -83,10 +70,7 @@ public class CommentsController : ControllerBase
         try
         {
             
-            var ticket = await _ticketsService.GetByIdAsync(
-                ticketId,
-                userId,
-                role);
+            var ticket = await _ticketsService.GetByIdAsync(ticketId, userId,role);
 
             if (ticket is null)
             {
@@ -96,8 +80,7 @@ public class CommentsController : ControllerBase
                 });
             }
 
-            var comments = await _commentService
-                .GetByTicketIdAsync(ticketId);
+            var comments = await _commentService.GetByTicketIdAsync(ticketId);
 
             return Ok(comments);
         }
@@ -107,19 +90,13 @@ public class CommentsController : ControllerBase
         }
     }
 
-    private bool TryGetCaller(
-        out Guid userId,
-        out string role)
+    private bool TryGetCaller(out Guid userId, out string role)
     {
-        var userIdValue = User.FindFirstValue(
-            ClaimTypes.NameIdentifier);
+        var userIdValue = User.FindFirstValue( ClaimTypes.NameIdentifier);
 
-        role = User.FindFirstValue(
-            ClaimTypes.Role) ?? string.Empty;
+        role = User.FindFirstValue( ClaimTypes.Role) ?? string.Empty;
 
-        var hasValidUserId = Guid.TryParse(
-            userIdValue,
-            out userId);
+        var hasValidUserId = Guid.TryParse(userIdValue,out userId);
 
         var hasRole = !string.IsNullOrWhiteSpace(role);
 

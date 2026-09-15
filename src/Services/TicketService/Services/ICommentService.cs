@@ -5,11 +5,7 @@ namespace TicketService.Services;
 
 public interface ICommentService
 {
-    Task<CommentResponse> AddAsync(
-        Guid ticketId,
-        AddCommentRequest request,
-        Guid authorUserId);
+    Task<CommentResponse> AddAsync(Guid ticketId,AddCommentRequest request,Guid authorUserId);
 
-    Task<IEnumerable<CommentResponse>> GetByTicketIdAsync(
-        Guid ticketId);
+    Task<IEnumerable<CommentResponse>> GetByTicketIdAsync( Guid ticketId);
 }

@@ -15,15 +15,11 @@ public class CommentService : ICommentService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<CommentResponse> AddAsync(
-        Guid ticketId,
-        AddCommentRequest request,
-        Guid authorUserId)
+    public async Task<CommentResponse> AddAsync(Guid ticketId, AddCommentRequest request,Guid authorUserId)
     {
         if (string.IsNullOrWhiteSpace(request.Content))
         {
-            throw new ArgumentException(
-                "Comment content is required.");
+            throw new ArgumentException( "Comment content is required.");
         }
 
         var now = DateTime.UtcNow;
@@ -46,19 +42,16 @@ public class CommentService : ICommentService
             CreatedAt = now
         };
 
-        await _unitOfWork.TicketHistories.AddAsync(
-            history);
+        await _unitOfWork.TicketHistories.AddAsync(history);
 
         await _unitOfWork.SaveChangesAsync();
 
         return MapToResponse(comment);
     }
 
-    public async Task<IEnumerable<CommentResponse>>
-        GetByTicketIdAsync(Guid ticketId)
+    public async Task<IEnumerable<CommentResponse>>GetByTicketIdAsync(Guid ticketId)
     {
-        var comments = await _unitOfWork.Comments
-            .GetByTicketIdAsync(ticketId);
+        var comments = await _unitOfWork.Comments.GetByTicketIdAsync(ticketId);
 
         return comments.Select(MapToResponse);
     }

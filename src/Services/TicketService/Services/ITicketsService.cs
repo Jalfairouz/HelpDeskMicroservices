@@ -5,37 +5,17 @@ namespace TicketService.Services;
 
 public interface ITicketsService
 {
-    Task<TicketResponse> CreateAsync(
-        CreateTicketRequest request,
-        Guid createdByUserId);
+    Task<TicketResponse> CreateAsync(CreateTicketRequest request, Guid createdByUserId);
 
-    Task<IEnumerable<TicketResponse>> GetAllAsync(
-        Guid userId,
-        string role);
+    Task<IEnumerable<TicketResponse>> GetAllAsync(Guid userId, string role);
 
-    Task<TicketResponse?> GetByIdAsync(
-        Guid ticketId,
-        Guid userId,
-        string role);
+    Task<TicketResponse?> GetByIdAsync(Guid ticketId,Guid userId,string role);
 
-    Task<TicketResponse?> UpdateAsync(
-        Guid ticketId,
-        UpdateTicketRequest request,
-        Guid userId,
-        string role);
+    Task<TicketResponse?> UpdateAsync( Guid ticketId,UpdateTicketRequest request, Guid userId, string role);
 
-    Task<TicketResponse?> ChangeStatusAsync(
-        Guid ticketId,
-        ChangeTicketStatusRequest request,
-        Guid userId,
-        string role);
+    Task<TicketResponse?> ChangeStatusAsync(Guid ticketId,ChangeTicketStatusRequest request,Guid userId,string role);
 
-    Task<IEnumerable<TicketHistoryResponse>?>
-        GetHistoryAsync(
-            Guid ticketId,
-            Guid userId,
-            string role);
+    Task<IEnumerable<TicketHistoryResponse>?>GetHistoryAsync(Guid ticketId, Guid userId,string role);
 
-    Task<bool> DeleteAsync(
-        Guid ticketId);
+    Task<bool> DeleteAsync( Guid ticketId);
 }

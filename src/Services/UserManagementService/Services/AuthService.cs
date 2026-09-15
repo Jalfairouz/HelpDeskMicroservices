@@ -10,18 +10,15 @@ public class AuthService : IAuthService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly TokenService _tokenService;
     private readonly SignInManager<ApplicationUser> _signInManager;
-    public AuthService(
-    UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager,
-    TokenService tokenService)
+    public AuthService(UserManager<ApplicationUser> userManager,
+    SignInManager<ApplicationUser> signInManager, TokenService tokenService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
     }
 
-    public async Task<UserResponse> RegisterAsync(
-        RegisterRequest request)
+    public async Task<UserResponse> RegisterAsync( RegisterRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
 
@@ -30,8 +27,7 @@ public class AuthService : IAuthService
 
         if (existingUser is not null)
         {
-            throw new ArgumentException(
-                "An account with this email already exists.");
+            throw new ArgumentException(  "An account with this email already exists.");
         }
 
         var user = new ApplicationUser
@@ -44,30 +40,22 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow
         };
 
-        var createResult =
-            await _userManager.CreateAsync(user, request.Password);
+        var createResult =  await _userManager.CreateAsync(user, request.Password);
 
         if (!createResult.Succeeded)
         {
-            var errors = string.Join(
-                ", ",
-                createResult.Errors.Select(error => error.Description));
+            var errors = string.Join(", ", createResult.Errors.Select(error => error.Description));
 
             throw new InvalidOperationException(errors);
         }
 
-        var roleResult =
-            await _userManager.AddToRoleAsync(
-                user,
-                RoleNames.Employee);
+        var roleResult = await _userManager.AddToRoleAsync( user, RoleNames.Employee);
 
         if (!roleResult.Succeeded)
         {
             await _userManager.DeleteAsync(user);
 
-            var errors = string.Join(
-                ", ",
-                roleResult.Errors.Select(error => error.Description));
+            var errors = string.Join( ", ", roleResult.Errors.Select(error => error.Description));
 
             throw new InvalidOperationException(errors);
         }
@@ -81,8 +69,7 @@ public class AuthService : IAuthService
             Role = RoleNames.Employee
         };
     }
-    public async Task<LoginResponse> LoginAsync(
-    LoginRequest request)
+    public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
 
@@ -90,35 +77,27 @@ public class AuthService : IAuthService
 
         if (user is null || !user.IsActive)
         {
-            throw new UnauthorizedAccessException(
-                "Invalid email or password.");
+            throw new UnauthorizedAccessException( "Invalid email or password.");
         }
 
         var signInResult =
-            await _signInManager.CheckPasswordSignInAsync(
-                user,
-                request.Password,
-                lockoutOnFailure: true);
+            await _signInManager.CheckPasswordSignInAsync( user, request.Password, lockoutOnFailure: true);
 
         if (signInResult.IsLockedOut)
         {
-            throw new UnauthorizedAccessException(
-                "Account is temporarily locked.");
+            throw new UnauthorizedAccessException( "Account is temporarily locked.");
         }
 
         if (!signInResult.Succeeded)
         {
-            throw new UnauthorizedAccessException(
-                "Invalid email or password.");
+            throw new UnauthorizedAccessException( "Invalid email or password.");
         }
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        var role = roles.FirstOrDefault()
-            ?? RoleNames.Employee;
+        var role = roles.FirstOrDefault() ?? RoleNames.Employee;
 
-        var tokenResult =
-            _tokenService.GenerateToken(user, role);
+        var tokenResult = _tokenService.GenerateToken(user, role);
 
         return new LoginResponse
         {

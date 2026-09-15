@@ -8,7 +8,5 @@ public interface IUserService
 
     Task<IEnumerable<UserResponse>> GetAllAsync();
 
-    Task<UserResponse?> ChangeRoleAsync(
-        Guid userId,
-        string newRole);
+    Task<UserResponse?> ChangeRoleAsync(Guid userId,string newRole);
 }

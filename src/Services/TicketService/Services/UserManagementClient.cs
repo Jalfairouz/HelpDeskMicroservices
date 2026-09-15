@@ -9,46 +9,35 @@ public class UserManagementClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<UserManagementClient> _logger;
 
-    public UserManagementClient(
-        HttpClient httpClient,
-        ILogger<UserManagementClient> logger)
+    public UserManagementClient( HttpClient httpClient, ILogger<UserManagementClient> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
     }
 
-    public async Task<List<TechnicianResponse>>
-        GetTechniciansAsync()
+    public async Task<List<TechnicianResponse>>GetTechniciansAsync()
     {
         try
         {
-            var technicians = await _httpClient
-                .GetFromJsonAsync<List<TechnicianResponse>>(
-                    "api/internal/users/technicians");
+            var technicians = await _httpClient.GetFromJsonAsync<List<TechnicianResponse>>( "api/internal/users/technicians");
 
             return technicians ?? [];
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogWarning(
-                ex,
-                "UserManagementService is unavailable.");
+            _logger.LogWarning( ex,"UserManagementService is unavailable.");
 
             return [];
         }
         catch (TaskCanceledException ex)
         {
-            _logger.LogWarning(
-                ex,
-                "UserManagementService request timed out.");
+            _logger.LogWarning( ex, "UserManagementService request timed out.");
 
             return [];
         }
         catch (JsonException ex)
         {
-            _logger.LogWarning(
-                ex,
-                "Invalid technicians response.");
+            _logger.LogWarning( ex, "Invalid technicians response.");
 
             return [];
         }

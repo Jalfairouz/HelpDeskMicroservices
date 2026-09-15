@@ -10,21 +10,18 @@ namespace UserManagementService.Controllers;
 [Route("api/internal/users")]
 public class InternalUsersController : ControllerBase
 {
-    private readonly TechnicianQueryService
-        _technicianQueryService;
+    private readonly TechnicianQueryService _technicianQueryService;
 
     public InternalUsersController(TechnicianQueryService technicianQueryService)
     {
-        _technicianQueryService =
-            technicianQueryService;
+        _technicianQueryService = technicianQueryService;
     }
 
     [HttpGet("technicians")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<TechnicianResponse>>> GetTechnicians()
     {
-        var technicians =
-            await _technicianQueryService.GetAllAsync();
+        var technicians =  await _technicianQueryService.GetAllAsync();
 
         return Ok(technicians);
     }

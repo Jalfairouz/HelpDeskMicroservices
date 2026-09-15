@@ -10,12 +10,9 @@ using TicketService.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers and string enums
-builder.Services
-    .AddControllers()
-    .AddJsonOptions(options =>
+builder.Services.AddControllers().AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(
-            new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 builder.Services.AddOpenApi();
@@ -23,8 +20,7 @@ builder.Services.AddOpenApi();
 // PostgreSQL
 builder.Services.AddDbContext<TicketDbContext>(options =>
 {
-    var connectionString = builder.Configuration
-        .GetConnectionString("TicketDatabase");
+    var connectionString = builder.Configuration.GetConnectionString("TicketDatabase");
 
     options.UseNpgsql(connectionString);
 });
@@ -38,32 +34,25 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
 // JWT authentication
 var userManagementUrl =
-    builder.Configuration[
-        "Services:UserManagementService"]
-    ?? throw new InvalidOperationException(
-        "UserManagementService URL is not configured.");
+    builder.Configuration["Services:UserManagementService"]
+    ?? throw new InvalidOperationException("UserManagementService URL is not configured.");
 
 builder.Services.AddHttpClient<UserManagementClient>(
     client =>
     {
-        client.BaseAddress =
-            new Uri(userManagementUrl);
+        client.BaseAddress =new Uri(userManagementUrl);
 
-        client.Timeout =
-            TimeSpan.FromSeconds(5);
+        client.Timeout =TimeSpan.FromSeconds(5);
     });
 var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException(
-        "JWT key is not configured.");
+    ?? throw new InvalidOperationException("JWT key is not configured.");
 
 builder.Services
     .AddAuthentication(options =>
     {
-        options.DefaultAuthenticateScheme =
-            JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 
-        options.DefaultChallengeScheme =
-            JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
@@ -71,17 +60,14 @@ builder.Services
             new TokenValidationParameters
             {
                 ValidateIssuer = true,
-                ValidIssuer =
-                    builder.Configuration["Jwt:Issuer"],
+                ValidIssuer =builder.Configuration["Jwt:Issuer"],
 
                 ValidateAudience = true,
-                ValidAudience =
-                    builder.Configuration["Jwt:Audience"],
+                ValidAudience =builder.Configuration["Jwt:Audience"],
 
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey =
-                    new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtKey)),
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
 
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero
