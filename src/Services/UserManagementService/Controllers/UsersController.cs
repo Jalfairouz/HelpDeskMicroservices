@@ -47,13 +47,48 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
+    [HttpGet("{userId:guid}")]
+    [Authorize(Roles = RoleNames.Admin)]
+    public async Task<ActionResult<UserResponse>> GetById(Guid userId)
+    {
+        var user = await _userService.GetByIdForAdminAsync(userId);
+
+        return user is null
+            ? NotFound(new { message = "User not found." })
+            : Ok(user);
+    }
+
+    [HttpPut("{userId:guid}")]
+    [Authorize(Roles = RoleNames.Admin)]
+    public async Task<ActionResult<UserResponse>> Update(
+        Guid userId,
+        [FromBody] UpdateUserRequest request)
+    {
+        try
+        {
+            var user = await _userService.UpdateAsync(userId, request);
+
+            return user is null
+                ? NotFound(new { message = "User not found." })
+                : Ok(user);
+        }
+        catch (ArgumentException exception)
+        {
+            return Conflict(new { message = exception.Message });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
+    }
+
     [HttpPatch("{userId:guid}/role")]
     [Authorize(Roles = RoleNames.Admin)]
     public async Task<ActionResult<UserResponse>> ChangeRole(Guid userId, [FromBody] ChangeUserRoleRequest request)
     {
         try
         {
-            var user = await _userService.ChangeRoleAsync( userId, request.Role);
+            var user = await _userService.ChangeRoleAsync(userId, request.Role);
 
             if (user is null)
             {
@@ -78,6 +113,46 @@ public class UsersController : ControllerBase
             {
                 message = exception.Message
             });
+        }
+    }
+
+    [HttpPatch("{userId:guid}/active-status")]
+    [Authorize(Roles = RoleNames.Admin)]
+    public async Task<ActionResult<UserResponse>> ChangeActiveStatus(
+        Guid userId,
+        [FromBody] ChangeUserActiveStatusRequest request)
+    {
+        try
+        {
+            var user = await _userService.ChangeActiveStatusAsync(
+                userId,
+                request.IsActive!.Value);
+
+            return user is null
+                ? NotFound(new { message = "User not found." })
+                : Ok(user);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
+    }
+
+    [HttpDelete("{userId:guid}")]
+    [Authorize(Roles = RoleNames.Admin)]
+    public async Task<IActionResult> Delete(Guid userId)
+    {
+        try
+        {
+            var deactivated = await _userService.DeactivateAsync(userId);
+
+            return deactivated
+                ? NoContent()
+                : NotFound(new { message = "User not found." });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { message = exception.Message });
         }
     }
 }
