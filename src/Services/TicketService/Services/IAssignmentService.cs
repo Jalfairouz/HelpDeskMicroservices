@@ -2,6 +2,5 @@
 
 public interface IAssignmentService
 {
-    Task<Guid?> FindLeastBusyTechnicianAsync(
-        Guid? excludedTechnicianId = null);
+    Task<Guid?> FindLeastBusyTechnicianAsync(Guid? excludedTechnicianId = null);
 }

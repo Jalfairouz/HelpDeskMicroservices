@@ -9,33 +9,16 @@ namespace TicketService.Services;
 public class TicketsService : ITicketsService
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly UserManagementClient _userManagementClient;
-    public TicketsService(  IUnitOfWork unitOfWork, UserManagementClient userManagementClient)
+    private readonly IAssignmentService _assignmentService;
+    public TicketsService(  IUnitOfWork unitOfWork, IAssignmentService assignmentService)
     {
         _unitOfWork = unitOfWork;
-        _userManagementClient = userManagementClient;
+        _assignmentService = assignmentService;
     }
 
     public async Task<TicketResponse> CreateAsync(CreateTicketRequest request,Guid createdByUserId)
     {
-        var technicians = await _userManagementClient.GetTechniciansAsync();
-
-        Guid? selectedTechnicianId = null;
-        int? lowestActiveTickets = null;
-
-        foreach (var technician in technicians.OrderBy(item => item.Id))
-        {
-
-            var activeTickets = await _unitOfWork.Tickets.CountActiveByTechnicianIdAsync( technician.Id);
-
-            if (lowestActiveTickets is null || activeTickets < lowestActiveTickets)
-            {
-                selectedTechnicianId = technician.Id;
-                lowestActiveTickets = activeTickets;
-            }
-        }
-
-        var now = DateTime.UtcNow;
+        var selectedTechnicianId = await _assignmentService.FindLeastBusyTechnicianAsync();
 
         var ticket = new Ticket
         {
@@ -47,7 +30,8 @@ public class TicketsService : ITicketsService
             Status = TicketStatus.Open,
             CreatedByUserId = createdByUserId,
             AssignedTechnicianId = selectedTechnicianId,
-            CreatedAt = now
+            CreatedAt = DateTime.UtcNow
+
         };
 
         await _unitOfWork.Tickets.AddAsync(ticket);
@@ -58,7 +42,7 @@ public class TicketsService : ITicketsService
                 TicketId = ticket.Id,
                 PerformedByUserId = createdByUserId,
                 ActionType = ActionType.Created,
-                CreatedAt = now
+                CreatedAt = DateTime.UtcNow
             });
 
         if (selectedTechnicianId.HasValue)
@@ -69,7 +53,7 @@ public class TicketsService : ITicketsService
                     TicketId = ticket.Id,
                     PerformedByUserId = Guid.Empty,
                     ActionType = ActionType.AssignedBySystem,
-                    CreatedAt = now.AddMilliseconds(2)
+                    CreatedAt = DateTime.UtcNow
                 });
         }
 
@@ -276,14 +260,14 @@ public class TicketsService : ITicketsService
 
         var history = await _unitOfWork.TicketHistories.GetByTicketIdAsync(ticketId);
 
-        return history.Select(item =>
+        ;return history.Select(item =>
             new TicketHistoryResponse
             {
                 Id = item.Id,
                 TicketId = item.TicketId,
                 PerformedByUserId = item.PerformedByUserId == Guid.Empty ? "System" : item.PerformedByUserId.ToString(), 
                 ActionType = item.ActionType,
-                CreatedAt = item.CreatedAt
+                CreatedAt = item.CreatedAt.ToString()
             });
     }
 
@@ -317,9 +301,10 @@ public class TicketsService : ITicketsService
             CreatedByUserId = ticket.CreatedByUserId,
             AssignedTechnicianId =
                 ticket.AssignedTechnicianId,
-            CreatedAt = ticket.CreatedAt,
-            UpdatedAt = ticket.UpdatedAt,
-            ClosedAt = ticket.ClosedAt
+            CreatedAt = ticket.CreatedAt.ToString(),
+            UpdatedAt = ticket.UpdatedAt?.ToString(),
+            ClosedAt = ticket.ClosedAt?.ToString()
+
         };
     }
 }

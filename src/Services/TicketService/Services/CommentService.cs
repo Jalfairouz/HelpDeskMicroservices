@@ -65,7 +65,7 @@ public class CommentService : ICommentService
             TicketId = comment.TicketId,
             AuthorUserId = comment.AuthorUserId,
             Content = comment.Content,
-            CreatedAt = comment.CreatedAt
+            CreatedAt = comment.CreatedAt.ToString(),
         };
     }
 }

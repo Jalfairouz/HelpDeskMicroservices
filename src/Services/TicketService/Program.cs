@@ -32,6 +32,7 @@ builder.Services.AddScoped<ITicketsService, TicketsService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
+builder.Services.AddScoped<IAssignmentService, AssignmentService>();
 // JWT authentication
 var userManagementUrl =
     builder.Configuration["Services:UserManagementService"]

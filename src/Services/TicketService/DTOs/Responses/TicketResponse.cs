@@ -22,8 +22,8 @@ public class TicketResponse
 
     public Guid? AssignedTechnicianId { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public string CreatedAt { get; set; } = DateTime.Now.ToString("yyyy-dd-MM HH:mm:ss");
+    public string? UpdatedAt { get; set; } = DateTime.Now.ToString("yyyy-dd-MM HH:mm:ss");
 
-    public DateTime? ClosedAt { get; set; }
+    public string? ClosedAt { get; set; } = DateTime.Now.ToString("yyyy-dd-MM HH:mm:ss");
 }

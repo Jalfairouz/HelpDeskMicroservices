@@ -12,5 +12,5 @@ public class TicketHistoryResponse
 
     public ActionType ActionType { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public string CreatedAt { get; set; } = DateTime.Now.ToString("yyyy-dd-MM HH:mm:ss");
 }

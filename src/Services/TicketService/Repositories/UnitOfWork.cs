@@ -10,11 +10,8 @@ public class UnitOfWork : IUnitOfWork
     public ICommentRepository Comments { get; }
 
     public ITicketHistoryRepository TicketHistories { get; }
-    public UnitOfWork(
-        TicketDbContext context,
-        ITicketRepository ticketRepository,
-        ICommentRepository commentRepository,
-        ITicketHistoryRepository ticketHistoryRepository)
+    public UnitOfWork(TicketDbContext context, ITicketRepository ticketRepository,
+        ICommentRepository commentRepository, ITicketHistoryRepository ticketHistoryRepository)
 
     {
         _context = context;
