@@ -1,14 +1,15 @@
 {
   "info": {
-    "name": "Help Desk API",
+    "name": "Help Desk API-2",
+    "description": "Order: 1) Admin Login  2) Register employee + Login  3) Create technician + Login  4) Tickets.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Auth",
+      "name": "1. Auth",
       "item": [
         {
-          "name": "Register",
+          "name": "Register (Employee)",
           "request": {
             "method": "POST",
             "header": [
@@ -17,27 +18,15 @@
                 "value": "application/json"
               }
             ],
+            "url": "{{userApi}}/api/auth/register",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"أحمد\",\n  \"lastName\": \"محمد\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:5087/api/auth/register",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "auth",
-                "register"
-              ]
+              "raw": "{\n  \"email\": \"employee@example.com\",\n  \"password\": \"Password123\",\n  \"firstName\": \"أحمد\",\n  \"lastName\": \"محمد\"\n}"
             }
           }
         },
         {
-          "name": "Login",
+          "name": "Login - Admin",
           "request": {
             "method": "POST",
             "header": [
@@ -46,112 +35,108 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:5087/api/auth/login",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Admin Login",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "url": "{{userApi}}/api/auth/login",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"admin@helpdesk.com\",\n  \"password\": \"{{adminPassword}}\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:5087/api/auth/login",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('adminToken', pm.response.json().accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{userApi}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employee@example.com\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('employeeToken', pm.response.json().accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Technician",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{userApi}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tech@example.com\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('technicianToken', pm.response.json().accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Users",
+      "name": "2. Users",
       "item": [
         {
-          "name": "Get Current User",
+          "name": "Get My Profile",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{employeeToken}}"
               }
             ],
-            "url": {
-              "raw": "http://localhost:5087/api/users/me",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "users",
-                "me"
-              ]
-            }
+            "url": "{{userApi}}/api/users/me"
           }
         },
         {
-          "name": "Get All Users",
+          "name": "Create User (Admin)",
           "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{adminToken}}"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:5087/api/users",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "users"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Change User Role",
-          "request": {
-            "method": "PATCH",
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
@@ -162,28 +147,28 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
+            "url": "{{userApi}}/api/users",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"role\": \"Technician\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:5087/api/users/{{userId}}/role",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "users",
-                "{{userId}}",
-                "role"
-              ]
+              "raw": "{\n  \"email\": \"tech@example.com\",\n  \"password\": \"Password123\",\n  \"firstName\": \"خالد\",\n  \"lastName\": \"علي\",\n  \"role\": \"Technician\"\n}"
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('userId', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
-          "name": "Get User by ID",
+          "name": "Get All Users (Admin)",
           "request": {
             "method": "GET",
             "header": [
@@ -192,23 +177,24 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": {
-              "raw": "http://localhost:5087/api/users/{{userId}}",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "users",
-                "{{userId}}"
-              ]
-            }
+            "url": "{{userApi}}/api/users"
           }
         },
         {
-          "name": "Update User",
+          "name": "Get User by ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{userApi}}/api/users/{{userId}}"
+          }
+        },
+        {
+          "name": "Update User (Admin)",
           "request": {
             "method": "PUT",
             "header": [
@@ -221,27 +207,15 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
+            "url": "{{userApi}}/api/users/{{userId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"employee.updated@example.com\",\"firstName\":\"Updated\",\"lastName\":\"Employee\"}"
-            },
-            "url": {
-              "raw": "http://localhost:5087/api/users/{{userId}}",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "users",
-                "{{userId}}"
-              ]
+              "raw": "{\n  \"email\": \"tech.updated@example.com\",\n  \"firstName\": \"خالد\",\n  \"lastName\": \"سعد\"\n}"
             }
           }
         },
         {
-          "name": "Change User Active Status",
+          "name": "Change User Role (Admin)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -254,28 +228,36 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
+            "url": "{{userApi}}/api/users/{{userId}}/role",
             "body": {
               "mode": "raw",
-              "raw": "{\"isActive\":false}"
-            },
-            "url": {
-              "raw": "http://localhost:5087/api/users/{{userId}}/active-status",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "users",
-                "{{userId}}",
-                "active-status"
-              ]
+              "raw": "{\n  \"role\": \"Technician\"\n}"
             }
           }
         },
         {
-          "name": "Delete User (Soft Delete)",
+          "name": "Change Active Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{userApi}}/api/users/{{userId}}/active-status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User - Soft (Admin)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -284,54 +266,34 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": {
-              "raw": "http://localhost:5087/api/users/{{userId}}",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "users",
-                "{{userId}}"
-              ]
-            }
+            "url": "{{userApi}}/api/users/{{userId}}"
           }
         }
       ]
     },
     {
-      "name": "Internal",
+      "name": "3. Internal",
       "item": [
         {
-          "name": "Get Technicians",
+          "name": "Get Active Technicians",
           "request": {
             "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5087/api/internal/users/technicians",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5087",
-              "path": [
-                "api",
-                "internal",
-                "users",
-                "technicians"
-              ]
-            }
+            "header": [
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internalApiKey}}"
+              }
+            ],
+            "url": "{{userApi}}/api/internal/users/technicians"
           }
         }
       ]
     },
     {
-      "name": "Tickets",
+      "name": "4. Tickets",
       "item": [
         {
-          "name": "Create Ticket",
+          "name": "Create Ticket (Employee)",
           "request": {
             "method": "POST",
             "header": [
@@ -341,49 +303,66 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{employeeToken}}"
               }
             ],
+            "url": "{{ticketApi}}/api/tickets",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"title\": \"مشكلة في الكمبيوتر\",\n  \"description\": \"الجهاز بطيء جداً\",\n  \"type\": \"Incident\",\n  \"category\": \"Hardware\",\n  \"priority\": \"High\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:5267/api/tickets",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5267",
-              "path": [
-                "api",
-                "tickets"
-              ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('ticketId', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
-          "name": "Get All Tickets",
+          "name": "Get My Tickets (Employee)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{employeeToken}}"
               }
             ],
-            "url": {
-              "raw": "http://localhost:5267/api/tickets",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5267",
-              "path": [
-                "api",
-                "tickets"
-              ]
-            }
+            "url": "{{ticketApi}}/api/tickets"
+          }
+        },
+        {
+          "name": "Get Assigned Tickets (Technician)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{technicianToken}}"
+              }
+            ],
+            "url": "{{ticketApi}}/api/tickets"
+          }
+        },
+        {
+          "name": "Get All Tickets (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{ticketApi}}/api/tickets"
           }
         },
         {
@@ -393,21 +372,106 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{employeeToken}}"
               }
             ],
-            "url": {
-              "raw": "http://localhost:5267/api/tickets/{{ticketId}}",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5267",
-              "path": [
-                "api",
-                "tickets",
-                "{{ticketId}}"
-              ]
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}"
+          }
+        },
+        {
+          "name": "Update Ticket (Technician)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{technicianToken}}"
+              }
+            ],
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"عنوان جديد\",\n  \"description\": \"وصف جديد\",\n  \"type\": \"Incident\",\n  \"category\": \"Software\",\n  \"priority\": \"Medium\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Assign Ticket (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}/assign",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"technicianId\": \"{{userId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Auto Assign Ticket (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}/auto-assign"
+          }
+        },
+        {
+          "name": "Start Work - InProgress (Technician)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{technicianToken}}"
+              }
+            ],
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"InProgress\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Close Ticket (Technician)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{technicianToken}}"
+              }
+            ],
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Closed\"\n}"
             }
           }
         },
@@ -418,94 +482,14 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": {
-              "raw": "http://localhost:5267/api/tickets/{{ticketId}}/history",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5267",
-              "path": [
-                "api",
-                "tickets",
-                "{{ticketId}}",
-                "history"
-              ]
-            }
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}/history"
           }
         },
         {
-          "name": "Update Ticket",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"عنوان جديد\",\n  \"description\": \"وصف جديد\",\n  \"type\": \"Incident\",\n  \"category\": \"Software\",\n  \"priority\": \"Medium\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:5267/api/tickets/{{ticketId}}",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5267",
-              "path": [
-                "api",
-                "tickets",
-                "{{ticketId}}"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Change Ticket Status",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"InProgress\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:5267/api/tickets/{{ticketId}}/status",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5267",
-              "path": [
-                "api",
-                "tickets",
-                "{{ticketId}}",
-                "status"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Delete Ticket",
+          "name": "Delete Ticket (Admin)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -514,28 +498,16 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": {
-              "raw": "http://localhost:5267/api/tickets/{{ticketId}}",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5267",
-              "path": [
-                "api",
-                "tickets",
-                "{{ticketId}}"
-              ]
-            }
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}"
           }
         }
       ]
     },
     {
-      "name": "Comments",
+      "name": "5. Comments",
       "item": [
         {
-          "name": "Add Comment",
+          "name": "Add Comment (Employee)",
           "request": {
             "method": "POST",
             "header": [
@@ -545,26 +517,34 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{employeeToken}}"
               }
             ],
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}/comments",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"content\": \"يبدو أن المشكلة من الهارد ديسك\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:5267/api/tickets/{{ticketId}}/comments",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5267",
-              "path": [
-                "api",
-                "tickets",
-                "{{ticketId}}",
-                "comments"
-              ]
+            }
+          }
+        },
+        {
+          "name": "Add Comment (Technician)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{technicianToken}}"
+              }
+            ],
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}/comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"سأقوم بفحص الجهاز اليوم\"\n}"
             }
           }
         },
@@ -575,23 +555,10 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}"
+                "value": "Bearer {{employeeToken}}"
               }
             ],
-            "url": {
-              "raw": "http://localhost:5267/api/tickets/{{ticketId}}/comments",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5267",
-              "path": [
-                "api",
-                "tickets",
-                "{{ticketId}}",
-                "comments"
-              ]
-            }
+            "url": "{{ticketApi}}/api/tickets/{{ticketId}}/comments"
           }
         }
       ]
@@ -599,7 +566,19 @@
   ],
   "variable": [
     {
-      "key": "token",
+      "key": "userApi",
+      "value": "http://localhost:5087"
+    },
+    {
+      "key": "ticketApi",
+      "value": "http://localhost:5267"
+    },
+    {
+      "key": "adminPassword",
+      "value": ""
+    },
+    {
+      "key": "internalApiKey",
       "value": ""
     },
     {
@@ -607,15 +586,19 @@
       "value": ""
     },
     {
-      "key": "adminPassword",
+      "key": "employeeToken",
       "value": ""
     },
     {
-      "key": "ticketId",
+      "key": "technicianToken",
       "value": ""
     },
     {
       "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "ticketId",
       "value": ""
     }
   ]

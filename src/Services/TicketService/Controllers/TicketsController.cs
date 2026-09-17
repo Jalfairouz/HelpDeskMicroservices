@@ -15,10 +15,11 @@ namespace TicketService.Controllers;
 public class TicketsController : ControllerBase
 {
     private readonly ITicketsService _ticketsService;
-
-    public TicketsController(ITicketsService ticketsService)
+    private readonly IAssignmentService _assignmentService;
+    public TicketsController(ITicketsService ticketsService, IAssignmentService assignmentService )
     {
         _ticketsService = ticketsService;
+        _assignmentService = assignmentService;
     }
 
 
@@ -33,7 +34,28 @@ public class TicketsController : ControllerBase
     }
 
 
+    [HttpPatch("{ticketId:guid}/assign")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<TicketResponse>> Assign(Guid ticketId, [FromBody] AssignTicketRequest request)
+    {
+        var adminId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+        try
+        {
+            var ticket = await _assignmentService.AssignAsync(ticketId, request.TechnicianId!.Value, adminId);
+
+            if (ticket is null)
+            {
+                return NotFound(new { message = "Ticket not found." });
+            }
+
+            return Ok(ticket);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TicketResponse>>> GetAll()
@@ -70,7 +92,7 @@ public class TicketsController : ControllerBase
 
 
     [HttpPut("{ticketId:guid}")]
-    [Authorize(Roles = "Employee,Technician,Admin")]
+    [Authorize(Roles = "Technician,Admin")]
     public async Task<ActionResult<TicketResponse>> Update(Guid ticketId, [FromBody] UpdateTicketRequest request)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

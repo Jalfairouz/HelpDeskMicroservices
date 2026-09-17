@@ -5,23 +5,15 @@ namespace UserManagementService.Services;
 
 public interface IUserService
 {
-    Task<UserResponse?> GetByIdAsync(Guid userId);
+    Task<UserResponse> CreateAsync(CreateUserRequest request);
 
-    Task<UserResponse?> GetByIdForAdminAsync(Guid userId);
+    Task<UserResponse?> GetByIdAsync(Guid userId, bool includeInactive = false);
 
     Task<IEnumerable<UserResponse>> GetAllAsync();
 
-    Task<UserResponse?> UpdateAsync(
-        Guid userId,
-        UpdateUserRequest request);
+    Task<UserResponse?> UpdateAsync(Guid userId, UpdateUserRequest request);
 
-    Task<UserResponse?> ChangeRoleAsync(
-        Guid userId,
-        string newRole);
+    Task<UserResponse?> ChangeRoleAsync(Guid userId, string newRole);
 
-    Task<UserResponse?> ChangeActiveStatusAsync(
-        Guid userId,
-        bool isActive);
-
-    Task<bool> DeactivateAsync(Guid userId);
+    Task<UserResponse?> ChangeActiveStatusAsync(Guid userId, bool isActive);
 }

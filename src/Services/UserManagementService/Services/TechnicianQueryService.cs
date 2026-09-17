@@ -18,9 +18,10 @@ public class TechnicianQueryService
         var technicians = await _userManager.GetUsersInRoleAsync(RoleNames.Technician);
 
         return technicians.Select(user => new TechnicianResponse
-            {
-                Id = user.Id,
-                DisplayName = $"{user.FirstName} {user.LastName}".Trim()
-            }).OrderBy(user => user.DisplayName);
+        {
+            Id = user.Id,
+            DisplayName = $"{user.FirstName} {user.LastName}".Trim(),
+            IsActive = user.IsActive
+        }).OrderBy(user => user.DisplayName);
     }
 }

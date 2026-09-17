@@ -1,8 +1,8 @@
-﻿using UserManagementService.DTOs.Requests;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using UserManagementService.DTOs.Requests;
 using UserManagementService.DTOs.Responses;
 using UserManagementService.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace UserManagementService.Services;
 
@@ -15,23 +15,58 @@ public class UserService : IUserService
         _userManager = userManager;
     }
 
-    public async Task<UserResponse?> GetByIdAsync(Guid userId)
+    public async Task<UserResponse> CreateAsync(CreateUserRequest request)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-
-        if (user is null || !user.IsActive)
+        if (!IsAllowedRole(request.Role))
         {
-            return null;
+            throw new InvalidOperationException("Role must be Employee or Technician.");
+        }
+
+        var email = request.Email.Trim().ToLowerInvariant();
+        if (await _userManager.FindByEmailAsync(email) is not null)
+        {
+            throw new ArgumentException("An account with this email already exists.");
+        }
+
+        var user = new ApplicationUser
+        {
+            Email = email,
+            UserName = email,
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var createResult = await _userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
+        {
+            throw new InvalidOperationException(GetErrors(createResult));
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, request.Role);
+        if (!roleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user);
+            throw new InvalidOperationException(GetErrors(roleResult));
         }
 
         return await CreateResponseAsync(user);
     }
 
-    public async Task<UserResponse?> GetByIdForAdminAsync(Guid userId)
+    public async Task<UserResponse?> GetByIdAsync(Guid userId, bool includeInactive = false)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
 
-        return user is null ? null : await CreateResponseAsync(user);
+        if (user is null)
+        {
+            return null;
+        }
+        if (!includeInactive && !user.IsActive)
+        {
+            return null;
+        }
+        return await CreateResponseAsync(user);
     }
 
     public async Task<IEnumerable<UserResponse>> GetAllAsync()
@@ -84,18 +119,9 @@ public class UserService : IUserService
 
     public async Task<UserResponse?> ChangeRoleAsync(Guid userId, string newRole)
     {
-        var allowedRoles = new[]
+        if (!IsAllowedRole(newRole))
         {
-            RoleNames.Employee,
-            RoleNames.Technician
-        };
-
-        var normalizedRole = allowedRoles.FirstOrDefault(role =>
-            role.Equals(newRole.Trim(), StringComparison.OrdinalIgnoreCase));
-
-        if (normalizedRole is null)
-        {
-            throw new ArgumentException("Role must be Employee or Technician.");
+            throw new InvalidOperationException("Role must be Employee or Technician.");
         }
 
         var user = await FindRegularUserAsync(userId);
@@ -104,35 +130,15 @@ public class UserService : IUserService
         {
             return null;
         }
+        var currentRoles = await _userManager.GetRolesAsync(user);
 
-        var currentRoles =
-            await _userManager.GetRolesAsync(user);
+        await _userManager.RemoveFromRolesAsync(user, currentRoles);
 
-        if (currentRoles.Contains(normalizedRole))
+        var result = await _userManager.AddToRoleAsync(user, newRole);
+
+        if (!result.Succeeded)
         {
-            return await CreateResponseAsync(user);
-        }
-
-        if (currentRoles.Count > 0)
-        {
-            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
-
-            if (!removeResult.Succeeded)
-            {
-                throw new InvalidOperationException(GetErrors(removeResult));
-            }
-        }
-
-        var addResult = await _userManager.AddToRoleAsync(user, normalizedRole);
-
-        if (!addResult.Succeeded)
-        {
-            if (currentRoles.Count > 0)
-            {
-                await _userManager.AddToRolesAsync(user, currentRoles);
-            }
-
-            throw new InvalidOperationException(GetErrors(addResult));
+            throw new InvalidOperationException(GetErrors(result));
         }
 
         return await CreateResponseAsync(user);
@@ -159,31 +165,7 @@ public class UserService : IUserService
         return await CreateResponseAsync(user);
     }
 
-    public async Task<bool> DeactivateAsync(Guid userId)
-    {
-        var user = await FindRegularUserAsync(userId);
-
-        if (user is null)
-        {
-            return false;
-        }
-
-        if (!user.IsActive)
-        {
-            return true;
-        }
-
-        user.IsActive = false;
-
-        var result = await _userManager.UpdateAsync(user);
-
-        if (!result.Succeeded)
-        {
-            throw new InvalidOperationException(GetErrors(result));
-        }
-
-        return true;
-    }
+    // ----------  ---------- ---------- ----------
 
     private async Task<ApplicationUser?> FindRegularUserAsync(Guid userId)
     {
@@ -200,6 +182,11 @@ public class UserService : IUserService
         }
 
         return user;
+    }
+
+    private static bool IsAllowedRole(string role)
+    {
+        return role == RoleNames.Employee || role == RoleNames.Technician;
     }
 
     private async Task<UserResponse> CreateResponseAsync(ApplicationUser user)
