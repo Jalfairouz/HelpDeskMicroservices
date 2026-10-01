@@ -70,7 +70,7 @@ public class TicketsController : ControllerBase
 
 
     [HttpGet("{ticketId:guid}")]
-    public async Task<ActionResult<TicketResponse>> GetById(Guid ticketId)
+    public async Task<ActionResult<TicketDetailsResponse>> GetById(Guid ticketId)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var role = User.FindFirstValue(ClaimTypes.Role)!;

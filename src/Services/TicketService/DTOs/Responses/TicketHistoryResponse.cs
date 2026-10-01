@@ -8,8 +8,8 @@ public class TicketHistoryResponse
 
     public Guid TicketId { get; set; }
 
-    public string PerformedByUserId { get; set; } = ""; 
-
+    public string PerformedByUserId { get; set; } = "";
+    public string PerformedByName { get; set; } = "";
     public ActionType ActionType { get; set; }
 
     public string CreatedAt { get; set; } = DateTime.Now.ToString("yyyy-dd-MM HH:mm:ss");

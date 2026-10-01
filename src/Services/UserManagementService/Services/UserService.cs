@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using UserManagementService.DTOs.External;
 using UserManagementService.DTOs.Requests;
 using UserManagementService.DTOs.Responses;
 using UserManagementService.Models;
@@ -67,6 +68,23 @@ public class UserService : IUserService
             return null;
         }
         return await CreateResponseAsync(user);
+    }
+    public async Task<UserResponseExternal?>GetUserDetails(Guid userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+            return null;
+        return new UserResponseExternal
+        {
+            Id = user.Id,
+
+            FirstName = user.FirstName,
+
+            LastName = user.LastName,
+
+            Email = user.Email
+        };
+
     }
 
     public async Task<IEnumerable<UserResponse>> GetAllAsync()
@@ -165,7 +183,6 @@ public class UserService : IUserService
         return await CreateResponseAsync(user);
     }
 
-    // ----------  ---------- ---------- ----------
 
     private async Task<ApplicationUser?> FindRegularUserAsync(Guid userId)
     {

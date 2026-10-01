@@ -3,16 +3,18 @@ using TicketService.DTOs.Requests;
 using TicketService.DTOs.Responses;
 using TicketService.Models;
 using TicketService.Repositories;
-
+using TicketService.Services;
 namespace TicketService.Services;
 
 public class CommentService : ICommentService
 {
     private readonly IUnitOfWork _unitOfWork;
-
-    public CommentService(IUnitOfWork unitOfWork)
+    private readonly UserManagementClient _userManagementClient;
+    public CommentService(IUnitOfWork unitOfWork, UserManagementClient userManagementClient)
     {
         _unitOfWork = unitOfWork;
+        _userManagementClient = userManagementClient;
+
     }
 
     public async Task<CommentResponse> AddAsync(Guid ticketId, AddCommentRequest request,Guid authorUserId)
@@ -31,7 +33,6 @@ public class CommentService : ICommentService
             Content = request.Content.Trim(),
             CreatedAt = now
         };
-
         await _unitOfWork.Comments.AddAsync(comment);
 
         var history = new TicketHistory
@@ -53,11 +54,26 @@ public class CommentService : ICommentService
     {
         var comments = await _unitOfWork.Comments.GetByTicketIdAsync(ticketId);
 
-        return comments.Select(MapToResponse);
+        var result = new List<CommentResponse>();
+
+        foreach (var comment in comments)
+        {
+            var user = await _userManagementClient.GetUserByIdAsync(comment.AuthorUserId);
+
+             result.Add(new CommentResponse
+            {
+                Id = comment.Id,
+                TicketId = comment.TicketId,
+                AuthorUserId = comment.AuthorUserId,
+                AuthorName = user?.FullName ?? "Unknown User",
+                Content = comment.Content,
+                CreatedAt = comment.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
+            });
+        }
+        return result;
     }
 
-    private static CommentResponse MapToResponse(
-        Comment comment)
+    private static CommentResponse MapToResponse(Comment comment)
     {
         return new CommentResponse
         {

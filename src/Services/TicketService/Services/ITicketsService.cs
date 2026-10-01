@@ -9,7 +9,7 @@ public interface ITicketsService
 
     Task<IEnumerable<TicketResponse>> GetAllAsync(Guid userId, string role);
 
-    Task<TicketResponse?> GetByIdAsync(Guid ticketId,Guid userId,string role);
+    Task<TicketDetailsResponse?> GetByIdAsync(Guid ticketId,Guid userId,string role);
 
     Task<TicketResponse?> UpdateAsync( Guid ticketId,UpdateTicketRequest request, Guid userId, string role);
 

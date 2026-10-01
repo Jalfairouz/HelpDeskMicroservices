@@ -1,4 +1,5 @@
-﻿using UserManagementService.DTOs.Requests;
+﻿using UserManagementService.DTOs.External;
+using UserManagementService.DTOs.Requests;
 using UserManagementService.DTOs.Responses;
 
 namespace UserManagementService.Services;
@@ -8,6 +9,7 @@ public interface IUserService
     Task<UserResponse> CreateAsync(CreateUserRequest request);
 
     Task<UserResponse?> GetByIdAsync(Guid userId, bool includeInactive = false);
+    Task<UserResponseExternal?> GetUserDetails(Guid userId);
 
     Task<IEnumerable<UserResponse>> GetAllAsync();
 
