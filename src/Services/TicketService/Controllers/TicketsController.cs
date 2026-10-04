@@ -65,9 +65,15 @@ public class TicketsController : ControllerBase
         var tickets = await _ticketsService.GetAllAsync(userId, role);
         return Ok(tickets);
     }
-
-
-
+    [HttpGet]
+    [Authorize(Roles = "Technician")]
+    public async Task<ActionResult<IEnumerable<TicketResponse>>> GetAssignedTickets()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var role = User.FindFirstValue(ClaimTypes.Role)!;
+        var tickets = await _ticketsService.GetAssignedTicketsAsync(userId, role);
+        return Ok(tickets);
+    }
 
     [HttpGet("{ticketId:guid}")]
     public async Task<ActionResult<TicketDetailsResponse>> GetById(Guid ticketId)

@@ -83,7 +83,21 @@ public class TicketsService : ITicketsService
         return tickets.Select(CreateResponse);
     }
 
-    public async Task<TicketDetailsResponse?> GetByIdAsync(Guid ticketId, Guid userId, string role)
+
+    public async Task<IEnumerable<TicketResponse>> GetAssignedTicketsAsync(Guid userId, string role)
+    {
+        List<Ticket> tickets;
+        if (role == RoleNames.Technician)
+        {
+            tickets = await _unitOfWork.Tickets.GetByTechnicianIdAsync(userId);
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
+        return tickets.Select(CreateResponse);
+    }
+    public async Task<TicketResponse?> GetByIdAsync(Guid ticketId, Guid userId, string role)
     {
         var ticket = await _unitOfWork.Tickets.GetByIdAsync(ticketId);
 
@@ -112,42 +126,42 @@ public class TicketsService : ITicketsService
 
         var history =
             await _unitOfWork.TicketHistories.GetByTicketIdAsync(ticketId);
+        return CreateResponse(ticket);
+        //return new TicketDetailsResponse
+        //{
+        //    Id = ticket.Id,
+        //    Title = ticket.Title,
+        //    Description = ticket.Description,
+        //    Type = ticket.Type,
+        //    Category = ticket.Category,
+        //    Priority = ticket.Priority,
+        //    Status = ticket.Status,
+        //    CreatedByUserId = ticket.CreatedByUserId,
+        //    AssignedTechnicianId = ticket.AssignedTechnicianId,
+        //    CreatedAt = ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+        //    UpdatedAt = ticket.UpdatedAt?
+        //    .ToString("yyyy-MM-dd HH:mm:ss"),
+        //    ClosedAt = ticket.ClosedAt?
+        //    .ToString("yyyy-MM-dd HH:mm:ss"),
 
-        return new TicketDetailsResponse
-        {
-            Id = ticket.Id,
-            Title = ticket.Title,
-            Description = ticket.Description,
-            Type = ticket.Type,
-            Category = ticket.Category,
-            Priority = ticket.Priority,
-            Status = ticket.Status,
-            CreatedByUserId = ticket.CreatedByUserId,
-            AssignedTechnicianId = ticket.AssignedTechnicianId,
-            CreatedAt = ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
-            UpdatedAt = ticket.UpdatedAt?
-            .ToString("yyyy-MM-dd HH:mm:ss"),
-            ClosedAt = ticket.ClosedAt?
-            .ToString("yyyy-MM-dd HH:mm:ss"),
+        //    Comments = comments.Select(c => new CommentResponse
+        //    {
+        //        Id = c.Id,
+        //        TicketId = c.TicketId,
+        //        AuthorUserId = c.AuthorUserId,
+        //        Content = c.Content,
+        //        CreatedAt = c.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
+        //    }).ToList(),
 
-            Comments = comments.Select(c => new CommentResponse
-            {
-                Id = c.Id,
-                TicketId = c.TicketId,
-                AuthorUserId = c.AuthorUserId,
-                Content = c.Content,
-                CreatedAt = c.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
-            }).ToList(),
-
-            History = history.Select(h => new TicketHistoryResponse
-            {
-                Id = h.Id,
-                TicketId = h.TicketId,
-                PerformedByUserId = h.PerformedByUserId == Guid.Empty ? "System" : h.PerformedByUserId.ToString(),
-                ActionType = h.ActionType,
-                CreatedAt = h.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
-            }).ToList()
-        };
+        //    History = history.Select(h => new TicketHistoryResponse
+        //    {
+        //        Id = h.Id,
+        //        TicketId = h.TicketId,
+        //        PerformedByUserId = h.PerformedByUserId == Guid.Empty ? "System" : h.PerformedByUserId.ToString(),
+        //        ActionType = h.ActionType,
+        //        CreatedAt = h.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
+        //    }).ToList()
+        //};
     }
 
     public async Task<TicketResponse?> UpdateAsync(Guid ticketId,UpdateTicketRequest request, Guid userId, string role)
@@ -343,7 +357,25 @@ public class TicketsService : ITicketsService
                 ticket.AssignedTechnicianId,
             CreatedAt = ticket.CreatedAt.ToString(),
             UpdatedAt = ticket.UpdatedAt?.ToString(),
-            ClosedAt = ticket.ClosedAt?.ToString()
+            ClosedAt = ticket.ClosedAt?.ToString(),
+
+            Comments = ticket.Comments.Select(c => new CommentResponse
+            {
+                TicketId = c.TicketId,
+                Id = c.Id,
+                AuthorUserId = c.AuthorUserId,
+                Content = c.Content,
+                CreatedAt = c.CreatedAt.ToString()
+            }).ToList(),
+            TicketHistories = ticket.TicketHistories.Select(h => new TicketHistoryResponse
+            {
+                TicketId=h.TicketId,
+                Id = h.Id,
+                PerformedByUserId = h.PerformedByUserId == Guid.Empty ? "System" : h.PerformedByUserId.ToString(),
+                ActionType = h.ActionType,
+
+                CreatedAt = h.CreatedAt.ToString()
+            }).ToList()
 
         };
     }

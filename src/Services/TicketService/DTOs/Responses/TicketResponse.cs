@@ -26,4 +26,7 @@ public class TicketResponse
     public string? UpdatedAt { get; set; } = DateTime.Now.ToString("yyyy-dd-MM HH:mm:ss");
 
     public string? ClosedAt { get; set; } = DateTime.Now.ToString("yyyy-dd-MM HH:mm:ss");
+    public List<CommentResponse> Comments { get; set; } = new();
+    public List<TicketHistoryResponse> TicketHistories { get; set; } = new();
+
 }

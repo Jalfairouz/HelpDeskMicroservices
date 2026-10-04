@@ -29,4 +29,6 @@ public class Ticket
     public DateTime? UpdatedAt { get; set; }
 
     public DateTime? ClosedAt { get; set; }
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+    public ICollection<TicketHistory> TicketHistories { get; set; } = new List<TicketHistory>();
 }

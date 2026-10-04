@@ -73,11 +73,11 @@ public class TicketDbContext : DbContext
             entity.HasIndex(comment =>
                 comment.AuthorUserId);
 
+            
             entity.HasOne<Ticket>()
-                .WithMany()
-                .HasForeignKey(comment =>
-                    comment.TicketId)
-                .OnDelete(DeleteBehavior.Cascade);
+        .WithMany(ticket => ticket.Comments)
+        .HasForeignKey(comment => comment.TicketId)
+        .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<TicketHistory>(entity =>
@@ -91,10 +91,9 @@ public class TicketDbContext : DbContext
                 .HasMaxLength(50);
 
             entity.HasOne<Ticket>()
-                .WithMany()
-                .HasForeignKey(history =>
-                    history.TicketId)
-                .OnDelete(DeleteBehavior.Cascade);
+        .WithMany(ticket => ticket.TicketHistories)
+        .HasForeignKey(history => history.TicketId)
+        .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

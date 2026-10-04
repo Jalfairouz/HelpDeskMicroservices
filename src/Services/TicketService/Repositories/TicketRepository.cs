@@ -22,9 +22,12 @@ public class TicketRepository : ITicketRepository
             .ToListAsync();
     }
 
-    public async Task<Ticket?> GetByIdAsync( Guid id)
+    public async Task<Ticket?> GetByIdAsync(Guid id)
     {
         return await _context.Tickets
+            .Include(ticket => ticket.Comments)
+            .Include(ticket => ticket.TicketHistories)
+            
             .FirstOrDefaultAsync(ticket => ticket.Id == id);
     }
 
@@ -40,8 +43,9 @@ public class TicketRepository : ITicketRepository
     public async Task<List<Ticket>> GetByTechnicianIdAsync(Guid technicianId)
     {
         return await _context.Tickets
-            .AsNoTracking()
+            
             .Where(ticket => ticket.AssignedTechnicianId == technicianId)
+            .AsNoTracking()
             .OrderByDescending(ticket => ticket.CreatedAt)
             .ToListAsync();
     }

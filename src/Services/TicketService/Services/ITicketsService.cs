@@ -8,8 +8,10 @@ public interface ITicketsService
     Task<TicketResponse> CreateAsync(CreateTicketRequest request, Guid createdByUserId);
 
     Task<IEnumerable<TicketResponse>> GetAllAsync(Guid userId, string role);
+    Task<IEnumerable<TicketResponse>> GetAssignedTicketsAsync(Guid userId, string role);
+    
 
-    Task<TicketDetailsResponse?> GetByIdAsync(Guid ticketId,Guid userId,string role);
+    Task<TicketResponse?> GetByIdAsync(Guid ticketId,Guid userId,string role);
 
     Task<TicketResponse?> UpdateAsync( Guid ticketId,UpdateTicketRequest request, Guid userId, string role);
 
