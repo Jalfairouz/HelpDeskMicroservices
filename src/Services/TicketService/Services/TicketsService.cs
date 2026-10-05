@@ -97,6 +97,13 @@ public class TicketsService : ITicketsService
         }
         return tickets.Select(CreateResponse);
     }
+
+    public async Task<List<TicketResponse>> GetAdminTicketsAsync( Guid userId, AdminTicketFilter filter)
+    {
+        var tickets = await _unitOfWork.Tickets.GetAdminTicketsAsync(filter.Mine == true ? userId : null, filter);
+
+        return tickets.Select(CreateResponse).ToList();
+    }
     public async Task<TicketResponse?> GetByIdAsync(Guid ticketId, Guid userId, string role)
     {
         var ticket = await _unitOfWork.Tickets.GetByIdAsync(ticketId);

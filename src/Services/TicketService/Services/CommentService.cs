@@ -30,6 +30,7 @@ public class CommentService : ICommentService
         {
             TicketId = ticketId,
             AuthorUserId = authorUserId,
+
             Content = request.Content.Trim(),
             CreatedAt = now
         };

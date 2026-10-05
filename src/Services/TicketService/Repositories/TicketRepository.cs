@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TicketService.Data;
 using TicketService.Domain;
+using TicketService.DTOs.Requests;
 using TicketService.Models;
 
 namespace TicketService.Repositories;
@@ -20,6 +21,31 @@ public class TicketRepository : ITicketRepository
         return await _context.Tickets.AsNoTracking()
             .OrderByDescending(ticket =>ticket.CreatedAt)
             .ToListAsync();
+    }
+    public async Task<IEnumerable<Ticket>> GetAdminTicketsAsync( Guid? userId, AdminTicketFilter filter)
+    {
+        IQueryable<Ticket> query = _context.Tickets.AsNoTracking();
+
+        if (filter.Mine == true && userId.HasValue)
+        {
+            query = query.Where(t => t.CreatedByUserId == userId.Value);
+        }
+
+        if (filter.Status.HasValue)
+        {
+            query = query.Where(t => t.Status == filter.Status.Value);
+        }
+
+        if (filter.Unassigned == true)
+        {
+            query = query.Where(t => t.AssignedTechnicianId == null);
+        }
+        else if (filter.Unassigned == false)
+        {
+            query = query.Where(t => t.AssignedTechnicianId != null);
+        }
+
+        return await query.ToListAsync();
     }
 
     public async Task<Ticket?> GetByIdAsync(Guid id)

@@ -65,6 +65,14 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
+    [HttpGet("Technicians")]
+    [Authorize(Roles = RoleNames.Admin)]
+    public async Task<ActionResult<IEnumerable<UserResponse>>> GetTechnicians()
+    {
+        var users = await _userService.GetTechnicianAsync();
+
+        return Ok(users);
+    }
 
     [HttpGet("{userId:guid}")]
     [Authorize(Roles = RoleNames.Admin)]

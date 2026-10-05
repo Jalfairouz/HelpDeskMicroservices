@@ -103,7 +103,19 @@ public class UserService : IUserService
         return responses;
     }
 
-    public async Task<UserResponse?> UpdateAsync(Guid userId, UpdateUserRequest request)
+    public async Task<IEnumerable<TechnicianResponse>> GetTechnicianAsync() { 
+    var technicians = await _userManager.GetUsersInRoleAsync(RoleNames.Technician);
+
+        return technicians.Select(user => new TechnicianResponse
+        {
+        Id = user.Id,
+        DisplayName = $"{user.FirstName} {user.LastName}".Trim(),
+        Email = user.Email,
+        IsActive = user.IsActive }).OrderBy(user => user.DisplayName);
+
+    }
+
+public async Task<UserResponse?> UpdateAsync(Guid userId, UpdateUserRequest request)
     {
         var user = await FindRegularUserAsync(userId);
 

@@ -12,7 +12,7 @@ public interface IUserService
     Task<UserResponseExternal?> GetUserDetails(Guid userId);
 
     Task<IEnumerable<UserResponse>> GetAllAsync();
-
+    Task<IEnumerable<TechnicianResponse>> GetTechnicianAsync();
     Task<UserResponse?> UpdateAsync(Guid userId, UpdateUserRequest request);
 
     Task<UserResponse?> ChangeRoleAsync(Guid userId, string newRole);

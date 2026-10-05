@@ -12,7 +12,7 @@ public interface ITicketsService
     
 
     Task<TicketResponse?> GetByIdAsync(Guid ticketId,Guid userId,string role);
-
+    Task<List<TicketResponse>> GetAdminTicketsAsync(Guid userId, AdminTicketFilter filter);
     Task<TicketResponse?> UpdateAsync( Guid ticketId,UpdateTicketRequest request, Guid userId, string role);
 
     Task<TicketResponse?> ChangeStatusAsync(Guid ticketId,ChangeTicketStatusRequest request,Guid userId,string role);
