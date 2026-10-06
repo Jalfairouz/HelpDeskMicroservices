@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TicketService.Data;
 using TicketService.Domain;
-using TicketService.DTOs.Requests;
 using TicketService.Models;
 
 namespace TicketService.Repositories;
@@ -16,36 +15,32 @@ public class TicketRepository : ITicketRepository
         _context = context;
     }
 
-    public async Task<List<Ticket>> GetAllAsync()
-    {
-        return await _context.Tickets.AsNoTracking()
-            .OrderByDescending(ticket =>ticket.CreatedAt)
-            .ToListAsync();
-    }
-    public async Task<IEnumerable<Ticket>> GetAdminTicketsAsync( Guid? userId, AdminTicketFilter filter)
+
+    public async Task<List<Ticket>> GetListAsync(Guid? createdByUserId,Guid? excludeCreatedByUserId,
+    Guid? assignedTechnicianId, TicketStatus? status, bool? unassigned)
     {
         IQueryable<Ticket> query = _context.Tickets.AsNoTracking();
 
-        if (filter.Mine == true && userId.HasValue)
-        {
-            query = query.Where(t => t.CreatedByUserId == userId.Value);
-        }
+        if (createdByUserId.HasValue)
+            query = query.Where(t => t.CreatedByUserId == createdByUserId.Value);
 
-        if (filter.Status.HasValue)
-        {
-            query = query.Where(t => t.Status == filter.Status.Value);
-        }
+        if (excludeCreatedByUserId.HasValue)
+            query = query.Where(t => t.CreatedByUserId != excludeCreatedByUserId.Value);
 
-        if (filter.Unassigned == true)
-        {
+        if (assignedTechnicianId.HasValue)
+            query = query.Where(t => t.AssignedTechnicianId == assignedTechnicianId.Value);
+
+        if (status.HasValue)
+            query = query.Where(t => t.Status == status.Value);
+
+        if (unassigned == true)
             query = query.Where(t => t.AssignedTechnicianId == null);
-        }
-        else if (filter.Unassigned == false)
-        {
+        else if (unassigned == false)
             query = query.Where(t => t.AssignedTechnicianId != null);
-        }
 
-        return await query.ToListAsync();
+        return await query
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task<Ticket?> GetByIdAsync(Guid id)
@@ -57,24 +52,7 @@ public class TicketRepository : ITicketRepository
             .FirstOrDefaultAsync(ticket => ticket.Id == id);
     }
 
-    public async Task<List<Ticket>> GetByCreatorIdAsync(Guid userId)
-    {
-        return await _context.Tickets
-            .AsNoTracking()
-            .Where(ticket =>ticket.CreatedByUserId == userId)
-            .OrderByDescending(ticket => ticket.CreatedAt)
-            .ToListAsync();
-    }
-
-    public async Task<List<Ticket>> GetByTechnicianIdAsync(Guid technicianId)
-    {
-        return await _context.Tickets
-            
-            .Where(ticket => ticket.AssignedTechnicianId == technicianId)
-            .AsNoTracking()
-            .OrderByDescending(ticket => ticket.CreatedAt)
-            .ToListAsync();
-    }
+    
 
     public async Task<int> CountActiveByTechnicianIdAsync( Guid technicianId)
     {

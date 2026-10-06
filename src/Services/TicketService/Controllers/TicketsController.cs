@@ -36,7 +36,7 @@ public class TicketsController : ControllerBase
 
     [HttpPatch("{ticketId:guid}/assign")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<TicketResponse>> Assign(Guid ticketId, [FromBody] AssignTicketRequest request)
+    public async Task<ActionResult<TicketResponse>> AssignTicket(Guid ticketId, [FromBody] AssignTicketRequest request)
     {
         var adminId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -58,11 +58,20 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TicketResponse>>> GetAll()
+    [Authorize(Roles = "Employee,Admin")]
+    public async Task<ActionResult<IEnumerable<TicketResponse>>> GetAllTickets([FromQuery] TicketFilter filter)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var role = User.FindFirstValue(ClaimTypes.Role)!;
-        var tickets = await _ticketsService.GetAllAsync(userId, role);
+        var tickets = await _ticketsService.GetAllTicketsAsync(userId, filter);
+        return Ok(tickets);
+    }
+
+    [HttpGet("system")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<IEnumerable<TicketResponse>>> GetSystemTickets([FromQuery] TicketFilter filter)
+    {
+        var adminId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var tickets = await _ticketsService.GetSystemTicketsAsync(adminId, filter);
         return Ok(tickets);
     }
 
@@ -70,20 +79,8 @@ public class TicketsController : ControllerBase
     [Authorize(Roles = "Technician")]
     public async Task<ActionResult<IEnumerable<TicketResponse>>> GetAssignedTickets()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var role = User.FindFirstValue(ClaimTypes.Role)!;
-        var tickets = await _ticketsService.GetAssignedTicketsAsync(userId, role);
-        return Ok(tickets);
-    }
-
-    [HttpGet("admin")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<IEnumerable<TicketResponse>>> GetAdminTickets([FromQuery] AdminTicketFilter filter)
-    {
-        var userId = Guid.Parse(
-        User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-        var tickets = await _ticketsService.GetAdminTicketsAsync(userId, filter);
+        var technicianId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var tickets = await _ticketsService.GetAssignedTicketsAsync(technicianId);
         return Ok(tickets);
     }
 

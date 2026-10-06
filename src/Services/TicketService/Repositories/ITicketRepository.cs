@@ -1,3 +1,4 @@
+using TicketService.Domain;
 using TicketService.DTOs.Requests;
 using TicketService.Models;
 
@@ -5,13 +6,11 @@ namespace TicketService.Repositories;
 
 public interface ITicketRepository
 {
-    Task<List<Ticket>> GetAllAsync();
-    Task<IEnumerable<Ticket>> GetAdminTicketsAsync( Guid? userId,AdminTicketFilter filter);
+
+    Task<List<Ticket>> GetListAsync(Guid? createdByUserId, Guid? excludeCreatedByUserId,
+    Guid? assignedTechnicianId, TicketStatus? status, bool? unassigned);
+
     Task<Ticket?> GetByIdAsync(Guid id);
-
-    Task<List<Ticket>> GetByCreatorIdAsync(Guid userId);
-
-    Task<List<Ticket>> GetByTechnicianIdAsync( Guid technicianId);
 
     Task<int> CountActiveByTechnicianIdAsync(Guid technicianId);
 

@@ -63,44 +63,38 @@ public class TicketsService : ITicketsService
         return CreateResponse(ticket);
     }
 
-    public async Task<IEnumerable<TicketResponse>> GetAllAsync(Guid userId, string role)
+    public async Task<IEnumerable<TicketResponse>> GetAllTicketsAsync(Guid userId, TicketFilter filter)
     {
-        List<Ticket> tickets;
+        var tickets = await _unitOfWork.Tickets.GetListAsync(
+            createdByUserId: userId,
+            excludeCreatedByUserId: null,
+            assignedTechnicianId: null,
+            status: filter.Status,
+            unassigned: filter.Unassigned);
 
-        if (role == RoleNames.Admin)
-        {
-            tickets = await _unitOfWork.Tickets.GetAllAsync();
-        }
-        else if (role == RoleNames.Technician)
-        {
-            tickets = await _unitOfWork.Tickets.GetByTechnicianIdAsync(userId);
-        }
-        else
-        {
-            tickets = await _unitOfWork.Tickets.GetByCreatorIdAsync(userId);
-        }
-
-        return tickets.Select(CreateResponse);
+        return tickets.Select(CreateResponse).ToList();
     }
 
-
-    public async Task<IEnumerable<TicketResponse>> GetAssignedTicketsAsync(Guid userId, string role)
+    public async Task<IEnumerable<TicketResponse>> GetSystemTicketsAsync(Guid adminId, TicketFilter filter)
     {
-        List<Ticket> tickets;
-        if (role == RoleNames.Technician)
-        {
-            tickets = await _unitOfWork.Tickets.GetByTechnicianIdAsync(userId);
-        }
-        else
-        {
-            throw new NotImplementedException();
-        }
-        return tickets.Select(CreateResponse);
+        var tickets = await _unitOfWork.Tickets.GetListAsync(
+            createdByUserId: null,
+            excludeCreatedByUserId: adminId,
+            assignedTechnicianId: null,
+            status: filter.Status,
+            unassigned: filter.Unassigned);
+
+        return tickets.Select(CreateResponse).ToList();
     }
 
-    public async Task<List<TicketResponse>> GetAdminTicketsAsync( Guid userId, AdminTicketFilter filter)
+    public async Task<IEnumerable<TicketResponse>> GetAssignedTicketsAsync(Guid technicianId)
     {
-        var tickets = await _unitOfWork.Tickets.GetAdminTicketsAsync(filter.Mine == true ? userId : null, filter);
+        var tickets = await _unitOfWork.Tickets.GetListAsync(
+            createdByUserId: null,
+            excludeCreatedByUserId: null,
+            assignedTechnicianId: technicianId,
+            status: null,
+            unassigned: null);
 
         return tickets.Select(CreateResponse).ToList();
     }
