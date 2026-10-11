@@ -25,6 +25,44 @@ services:
     volumes:
       - ticket_data:/var/lib/postgresql/data
 
+  notification-db:
+    image: postgres:16
+    container_name: helpdesk_notification_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: notification_user
+      POSTGRES_PASSWORD: notification_password
+    ports:
+      - "5435:5432"
+    volumes:
+      - notification_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: kalo
+      RABBITMQ_DEFAULT_PASS: kalo
+    configs:
+      - source: rabbitmq-plugins
+        target: /etc/rabbitmq/enabled_plugins
+    volumes:
+      - rabbitmq-lib:/var/lib/rabbitmq/
+      - rabbitmq-log:/var/log/rabbitmq
+configs:
+  rabbitmq-plugins:
+    content: "[rabbitmq_management]." 
+
 volumes:
   identity_data:
   ticket_data:
+  notification_data:
+  rabbitmq-lib:
+    driver: local
+  rabbitmq-log:
+    driver: local

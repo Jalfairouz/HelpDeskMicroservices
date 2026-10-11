@@ -58,7 +58,7 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Employee,Admin")]
+    [Authorize(Roles = "Employee,Admin,Technician")]
     public async Task<ActionResult<IEnumerable<TicketResponse>>> GetAllTickets([FromQuery] TicketFilter filter)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

@@ -1,4 +1,7 @@
-﻿using TicketService.Domain;
+﻿using IntegrationContracts.Events;
+using MassTransit;
+using MassTransit.Transports;
+using TicketService.Domain;
 using TicketService.DTOs.Responses;
 using TicketService.Models;
 using TicketService.Repositories;
@@ -10,12 +13,15 @@ public class AssignmentService : IAssignmentService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ITicketRepository _ticketRepository;
     private readonly UserManagementClient _userManagementClient;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AssignmentService(IUnitOfWork unitOfWork, ITicketRepository ticketRepository, UserManagementClient userManagementClient)
+    public AssignmentService(IUnitOfWork unitOfWork, ITicketRepository ticketRepository, UserManagementClient userManagementClient, IPublishEndpoint publishEndpoint)
     {
         _unitOfWork = unitOfWork;
         _ticketRepository = ticketRepository;
         _userManagementClient = userManagementClient;
+        _publishEndpoint = publishEndpoint;
+
     }
 
     public async Task<Guid?> FindLeastBusyTechnicianAsync(Guid? excludedTechnicianId = null)
@@ -77,7 +83,13 @@ public class AssignmentService : IAssignmentService
         });
 
         await _unitOfWork.SaveChangesAsync();
-
+        await _publishEndpoint.Publish<TicketAssignedEvent>(new
+        {
+            TicketId = ticket.Id,
+            TicketTitle = ticket.Title,
+            AssigneeId = ticket.AssignedTechnicianId,
+            CreatorId = ticket.CreatedByUserId
+        });
         return new TicketResponse
         {
             Id = ticket.Id,

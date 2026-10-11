@@ -1,20 +1,24 @@
+using IntegrationContracts.Events;
+using MassTransit;
 using System.Xml.Linq;
 using TicketService.Domain;
 using TicketService.DTOs.Requests;
 using TicketService.DTOs.Responses;
 using TicketService.Models;
 using TicketService.Repositories;
-
 namespace TicketService.Services;
 
 public class TicketsService : ITicketsService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAssignmentService _assignmentService;
-    public TicketsService(  IUnitOfWork unitOfWork, IAssignmentService assignmentService)
+    private readonly IPublishEndpoint _publishEndpoint;
+
+    public TicketsService(  IUnitOfWork unitOfWork, IAssignmentService assignmentService, IPublishEndpoint publishEndpoint)
     {
         _unitOfWork = unitOfWork;
         _assignmentService = assignmentService;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<TicketResponse> CreateAsync(CreateTicketRequest request,Guid createdByUserId)
@@ -59,8 +63,17 @@ public class TicketsService : ITicketsService
         }
 
         await _unitOfWork.SaveChangesAsync();
+        //Notification Creating
 
+        await _publishEndpoint.Publish(new TicketCreatedEvent
+        {
+            EventId = Guid.NewGuid(),
+            TicketId = ticket.Id,
+            TicketTitle = ticket.Title,
+            CreatorId = ticket.CreatedByUserId
+        });
         return CreateResponse(ticket);
+        
     }
 
     public async Task<IEnumerable<TicketResponse>> GetAllTicketsAsync(Guid userId, TicketFilter filter)

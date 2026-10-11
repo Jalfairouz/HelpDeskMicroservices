@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -8,8 +9,18 @@ using TicketService.Repositories;
 using TicketService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("kalo");
+            h.Password("kalo");
+        });
 
-// Controllers and string enums
+    });
+});
 builder.Services.AddControllers().AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -17,7 +28,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 builder.Services.AddOpenApi();
 
-// PostgreSQL
 builder.Services.AddDbContext<TicketDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("TicketDatabase");
@@ -25,7 +35,6 @@ builder.Services.AddDbContext<TicketDbContext>(options =>
     options.UseNpgsql(connectionString);
 });
 
-// Repository, Unit of Work and Service
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
@@ -33,7 +42,7 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
-// JWT authentication
+
 var userManagementUrl =
     builder.Configuration["Services:UserManagementService"]
     ?? throw new InvalidOperationException("UserManagementService URL is not configured.");
