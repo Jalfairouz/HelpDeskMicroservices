@@ -12,8 +12,9 @@ public sealed class NotificationDbContext : DbContext
     {
     }
 
-    public DbSet<Notification> Notifications =>
-        Set<Notification>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<Inbox> Inboxes => Set<Inbox>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,16 +25,29 @@ public sealed class NotificationDbContext : DbContext
             entity.HasKey(n => n.Id);
 
             entity.Property(n => n.Title)
-                .HasMaxLength(200)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(200);
 
             entity.Property(n => n.Message)
-                .HasMaxLength(1000)
                 .IsRequired();
 
-            entity.HasIndex(n => n.UserId);
+            entity.HasIndex(n => n.EventId);
+            entity.HasIndex(n => n.TicketId);
+        });
 
-            entity.HasIndex(n => n.EventId)
+        modelBuilder.Entity<Inbox>(entity =>
+        {
+            entity.HasKey(i => i.Id);
+
+            entity.HasOne(i => i.Notification)
+                .WithMany(n => n.Inboxes)
+                .HasForeignKey(i => i.NotificationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(i => new { i.UserId, i.IsRead });
+
+            
+            entity.HasIndex(i => new { i.NotificationId, i.UserId })
                 .IsUnique();
         });
     }
