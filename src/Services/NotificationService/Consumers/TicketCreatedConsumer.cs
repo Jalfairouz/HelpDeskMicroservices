@@ -42,7 +42,7 @@ public sealed class TicketCreatedConsumer
         {
             EventId = ticket.EventId,
             TicketId = ticket.TicketId,
-            UserId = ticket.CreatorId,
+             = ticket.CreatorId,
             Title = "New Ticket successfully created.",
             Message = $"Ticket Created: {ticket.TicketTitle}",
             IsRead = false,

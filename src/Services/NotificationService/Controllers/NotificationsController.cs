@@ -51,94 +51,94 @@ public class NotificationsController : ControllerBase
         return Ok(inboxItems);
     }
 
-    //[HttpGet("{id:guid}")]
-    //public async Task<IActionResult> GetById(Guid id)
-    //{
-    //    var userIdClaim = User.FindFirstValue(
-    //        ClaimTypes.NameIdentifier);
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var userIdClaim = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
 
-    //    if (!Guid.TryParse(userIdClaim, out var userId))
-    //        return Unauthorized();
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
 
-    //    var notification = await _dbContext.Notifications
-    //        .AsNoTracking()
-    //        .FirstOrDefaultAsync(n =>
-    //            n.Id == id && n.UserId == userId);
+        var notification = await _dbContext.Notifications
+            .AsNoTracking()
+            .FirstOrDefaultAsync(n =>
+                n.Id == id && n.UserId == userId);
 
-    //    if (notification is null)
-    //        return NotFound();
+        if (notification is null)
+            return NotFound();
 
-    //    return Ok(notification);
-    //}
+        return Ok(notification);
+    }
 
-    //[HttpPatch("{id:guid}/read")]
-    //public async Task<IActionResult> MarkAsRead(Guid id)
-    //{
-    //    var userIdClaim = User.FindFirstValue(
-    //        ClaimTypes.NameIdentifier);
+    [HttpPatch("{id:guid}/read")]
+    public async Task<IActionResult> MarkAsRead(Guid id)
+    {
+        var userIdClaim = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
 
-    //    if (!Guid.TryParse(userIdClaim, out var userId))
-    //        return Unauthorized();
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
 
-    //    var notification = await _dbContext.Notifications
-    //        .FirstOrDefaultAsync(n =>n.Id == id && n.UserId == userId);
+        var notification = await _dbContext.Notifications
+            .FirstOrDefaultAsync(n =>n.Id == id && n.UserId == userId);
 
-    //    if (notification is null)
-    //        return NotFound();
+        if (notification is null)
+            return NotFound();
 
-    //    notification.IsRead = true;
+        notification.IsRead = true;
 
-    //    await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
 
-    //    return Ok(new
-    //    {
-    //        notification.Id,
-    //        notification.IsRead
-    //    });
-    //}
+        return Ok(new
+        {
+            notification.Id,
+            notification.IsRead
+        });
+    }
 
-    //[HttpGet("unread-count")]
-    //public async Task<IActionResult> GetUnreadCount()
-    //{
-    //    var userIdClaim = User.FindFirstValue(
-    //        ClaimTypes.NameIdentifier);
+    [HttpGet("unread-count")]
+    public async Task<IActionResult> GetUnreadCount()
+    {
+        var userIdClaim = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
 
-    //    if (!Guid.TryParse(userIdClaim, out var userId))
-    //        return Unauthorized();
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
 
-    //    var count = await _dbContext.Notifications
-    //        .CountAsync(n => n.UserId == userId && !n.IsRead);
+        var count = await _dbContext.Notifications
+            .CountAsync(n => n.UserId == userId && !n.IsRead);
 
-    //    return Ok(new
-    //    {
-    //        UnreadCount = count
-    //    });
-    //}
+        return Ok(new
+        {
+            UnreadCount = count
+        });
+    }
 
-    //[HttpPatch("read-all")]
-    //public async Task<IActionResult> MarkAllAsRead()
-    //{
-    //    var userIdClaim = User.FindFirstValue(
-    //        ClaimTypes.NameIdentifier);
+    [HttpPatch("read-all")]
+    public async Task<IActionResult> MarkAllAsRead()
+    {
+        var userIdClaim = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
 
-    //    if (!Guid.TryParse(userIdClaim, out var userId))
-    //        return Unauthorized();
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
 
-    //    var notifications = await _dbContext.Notifications
-    //        .Where(n => n.UserId == userId && !n.IsRead)
-    //        .ToListAsync();
+        var notifications = await _dbContext.Notifications
+            .Where(n => n.UserId == userId && !n.IsRead)
+            .ToListAsync();
 
-    //    foreach (var notification in notifications)
-    //    {
-    //        notification.IsRead = true;
-    //    }
+        foreach (var notification in notifications)
+        {
+            notification.IsRead = true;
+        }
 
-    //    await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
 
-    //    return Ok(new
-    //    {
-    //        UpdatedCount = notifications.Count
-    //    });
-    //}
+        return Ok(new
+        {
+            UpdatedCount = notifications.Count
+        });
+    }
 
 }
