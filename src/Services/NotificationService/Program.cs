@@ -18,6 +18,7 @@ var rabbit = builder.Configuration.GetSection("RabbitMq");
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<TicketCreatedConsumer>();
+    x.AddConsumer<TicketAssignedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -33,9 +34,15 @@ builder.Services.AddMassTransit(x =>
                         "RabbitMQ password is missing."));
             });
 
+
         cfg.ReceiveEndpoint("notification.ticket-created", e =>
         {
             e.ConfigureConsumer<TicketCreatedConsumer>(context);
+        });
+
+        cfg.ReceiveEndpoint("notification.ticket-assigned", e =>
+        {
+            e.ConfigureConsumer<TicketAssignedConsumer>(context);
         });
     });
 });

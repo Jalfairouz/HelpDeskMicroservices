@@ -1,9 +1,7 @@
 ﻿
-namespace HelpDesk.NotificationService.Models;
+namespace NotificationService.Models;
 
-public sealed class Notification
-
-
+public class Notification
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 

@@ -1,12 +1,13 @@
-﻿namespace IntegrationContracts.Events
-{
-    public interface TicketAssignedEvent
-    {
-        Guid EventId { get; }
+﻿
+namespace IntegrationContracts.Events;
 
-        Guid TicketId { get; }
-        string TicketTitle { get; }
-        Guid AssigneeId { get; }
-        Guid CreatorId { get; } 
-    }
+public sealed record TicketAssignedEvent
+{
+    public Guid TicketId { get; init; }
+
+    public string TicketTitle { get; init; } = string.Empty;
+
+    public Guid AssigneeId { get; init; }
+
+    public Guid CreatorId { get; init; }
 }

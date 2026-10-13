@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-
 namespace HelpDesk.NotificationService.Controllers;
 
 [Authorize]
@@ -21,22 +20,21 @@ public class NotificationsController : ControllerBase
     }
 
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var userIdClaim = User.FindFirstValue(
-            ClaimTypes.NameIdentifier);
 
-        if (!Guid.TryParse(userIdClaim, out var userId))
+    [HttpGet]
+    public async Task<IActionResult> GetAll(
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId))
             return Unauthorized();
 
-        var inboxItems = await _dbContext.Inboxes
+        var notifications = await _dbContext.Inboxes
             .AsNoTracking()
             .Where(i => i.UserId == userId)
             .OrderByDescending(i => i.Notification.CreatedAt)
             .Select(i => new
             {
-                i.Id,
+                Id = i.Id, 
                 i.NotificationId,
                 i.Notification.EventId,
                 i.Notification.TicketId,
@@ -46,24 +44,71 @@ public class NotificationsController : ControllerBase
                 i.IsRead,
                 i.ReadAt
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
-        return Ok(inboxItems);
+        return Ok(notifications);
+    }
+
+    [HttpGet("unread")]
+    public async Task<IActionResult> GetUnread(
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId))
+            return Unauthorized();
+
+        var notifications = await _dbContext.Inboxes
+            .AsNoTracking()
+            .Where(i => i.UserId == userId && !i.IsRead)
+            .OrderByDescending(i => i.Notification.CreatedAt)
+            .Select(i => new
+            {
+                Id = i.Id,
+                i.NotificationId,
+                i.Notification.TicketId,
+                i.Notification.Title,
+                i.Notification.Message,
+                i.Notification.CreatedAt,
+                i.IsRead
+            })
+            .ToListAsync(cancellationToken);
+
+        return Ok(notifications);
+    }
+
+    [HttpGet("unread-count")]
+    public async Task<IActionResult> GetUnreadCount()
+    {
+        if (!TryGetUserId(out var userId))
+            return Unauthorized();
+
+        var count = await _dbContext.Inboxes
+            .CountAsync(i => i.UserId == userId && !i.IsRead);
+
+        return Ok(new { UnreadCount = count });
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById( Guid id )
     {
-        var userIdClaim = User.FindFirstValue(
-            ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
+        if (!TryGetUserId(out var userId))
             return Unauthorized();
 
-        var notification = await _dbContext.Notifications
+        var notification = await _dbContext.Inboxes
             .AsNoTracking()
-            .FirstOrDefaultAsync(n =>
-                n.Id == id && n.UserId == userId);
+            .Where(i => i.Id == id && i.UserId == userId)
+            .Select(i => new
+            {
+                Id = i.Id,
+                i.NotificationId,
+                i.Notification.EventId,
+                i.Notification.TicketId,
+                i.Notification.Title,
+                i.Notification.Message,
+                i.Notification.CreatedAt,
+                i.IsRead,
+                i.ReadAt
+            })
+            .FirstOrDefaultAsync();
 
         if (notification is null)
             return NotFound();
@@ -72,73 +117,38 @@ public class NotificationsController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/read")]
-    public async Task<IActionResult> MarkAsRead(Guid id)
+    public async Task<IActionResult> MarkAsRead( Guid id)
     {
-        var userIdClaim = User.FindFirstValue(
-            ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
+        if (!TryGetUserId(out var userId))
             return Unauthorized();
 
-        var notification = await _dbContext.Notifications
-            .FirstOrDefaultAsync(n =>n.Id == id && n.UserId == userId);
+        var inbox = await _dbContext.Inboxes
+            .FirstOrDefaultAsync(
+                i => i.Id == id && i.UserId == userId);
 
-        if (notification is null)
+        if (inbox is null)
             return NotFound();
 
-        notification.IsRead = true;
-
-        await _dbContext.SaveChangesAsync();
-
-        return Ok(new
+        if (!inbox.IsRead)
         {
-            notification.Id,
-            notification.IsRead
-        });
-    }
+            inbox.IsRead = true;
+            inbox.ReadAt = DateTime.UtcNow;
 
-    [HttpGet("unread-count")]
-    public async Task<IActionResult> GetUnreadCount()
-    {
-        var userIdClaim = User.FindFirstValue(
-            ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
-            return Unauthorized();
-
-        var count = await _dbContext.Notifications
-            .CountAsync(n => n.UserId == userId && !n.IsRead);
-
-        return Ok(new
-        {
-            UnreadCount = count
-        });
-    }
-
-    [HttpPatch("read-all")]
-    public async Task<IActionResult> MarkAllAsRead()
-    {
-        var userIdClaim = User.FindFirstValue(
-            ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
-            return Unauthorized();
-
-        var notifications = await _dbContext.Notifications
-            .Where(n => n.UserId == userId && !n.IsRead)
-            .ToListAsync();
-
-        foreach (var notification in notifications)
-        {
-            notification.IsRead = true;
+            await _dbContext.SaveChangesAsync();
         }
 
-        await _dbContext.SaveChangesAsync();
-
         return Ok(new
         {
-            UpdatedCount = notifications.Count
+            inbox.Id,
+            inbox.IsRead,
+            inbox.ReadAt
         });
     }
+    private bool TryGetUserId(out Guid userId)
+    {
+        var userIdClaim = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
 
+        return Guid.TryParse(userIdClaim, out userId);
+    }
 }

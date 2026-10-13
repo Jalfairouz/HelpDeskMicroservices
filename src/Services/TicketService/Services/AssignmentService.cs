@@ -90,6 +90,7 @@ public class AssignmentService : IAssignmentService
             AssigneeId = ticket.AssignedTechnicianId,
             CreatorId = ticket.CreatedByUserId
         });
+
         return new TicketResponse
         {
             Id = ticket.Id,

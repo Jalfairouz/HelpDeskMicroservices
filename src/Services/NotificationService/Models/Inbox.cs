@@ -1,6 +1,6 @@
-﻿namespace HelpDesk.NotificationService.Models;
+﻿using NotificationService.Models;
 
-public sealed class Inbox
+public class Inbox
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -12,7 +12,7 @@ public sealed class Inbox
 
     public DateTime? ReadAt { get; set; }
 
-    public DateTime? DeliveredAt { get; set; }
+    public DateTime DeliveredAt { get; set; } = DateTime.UtcNow;
 
     public Notification Notification { get; set; } = null!;
 }

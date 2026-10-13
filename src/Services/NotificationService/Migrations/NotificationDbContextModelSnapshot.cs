@@ -22,7 +22,38 @@ namespace NotificationService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("HelpDesk.NotificationService.Models.Notification", b =>
+            modelBuilder.Entity("Inbox", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("NotificationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotificationId", "UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("Inboxes");
+                });
+
+            modelBuilder.Entity("NotificationService.Models.Notification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -34,33 +65,39 @@ namespace NotificationService.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("TicketId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EventId")
                         .IsUnique();
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("Inbox", b =>
+                {
+                    b.HasOne("NotificationService.Models.Notification", "Notification")
+                        .WithMany("Inboxes")
+                        .HasForeignKey("NotificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Notification");
+                });
+
+            modelBuilder.Entity("NotificationService.Models.Notification", b =>
+                {
+                    b.Navigation("Inboxes");
                 });
 #pragma warning restore 612, 618
         }

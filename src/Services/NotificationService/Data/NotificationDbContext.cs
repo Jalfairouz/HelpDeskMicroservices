@@ -1,6 +1,6 @@
 ﻿
-using HelpDesk.NotificationService.Models;
 using Microsoft.EntityFrameworkCore;
+using NotificationService.Models;
 
 namespace HelpDesk.NotificationService.Data;
 
@@ -25,14 +25,13 @@ public sealed class NotificationDbContext : DbContext
             entity.HasKey(n => n.Id);
 
             entity.Property(n => n.Title)
-                .IsRequired()
-                .HasMaxLength(200);
+                .IsRequired();
 
             entity.Property(n => n.Message)
                 .IsRequired();
 
-            entity.HasIndex(n => n.EventId);
-            entity.HasIndex(n => n.TicketId);
+            entity.HasIndex(n => n.EventId)
+                .IsUnique();
         });
 
         modelBuilder.Entity<Inbox>(entity =>
@@ -44,11 +43,18 @@ public sealed class NotificationDbContext : DbContext
                 .HasForeignKey(i => i.NotificationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasIndex(i => new { i.UserId, i.IsRead });
+            entity.HasIndex(i => new
+            {
+                i.NotificationId,
+                i.UserId
+            }).IsUnique();
 
-            
-            entity.HasIndex(i => new { i.NotificationId, i.UserId })
-                .IsUnique();
+            entity.HasIndex(i => new
+            {
+                i.UserId,
+                i.IsRead
+            });
         });
-    }
+    
+}
 }

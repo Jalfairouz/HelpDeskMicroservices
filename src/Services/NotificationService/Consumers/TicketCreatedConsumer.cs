@@ -1,14 +1,13 @@
 ﻿
 using HelpDesk.NotificationService.Data;
-using HelpDesk.NotificationService.Models;
 using IntegrationContracts.Events;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using NotificationService.Models;
 
 namespace HelpDesk.NotificationService.Consumers;
 
-public sealed class TicketCreatedConsumer
-    : IConsumer<TicketCreatedEvent>
+public sealed class TicketCreatedConsumer : IConsumer<TicketCreatedEvent>
 {
     private readonly ILogger<TicketCreatedConsumer> _logger;
     private readonly NotificationDbContext _dbContext;
@@ -42,16 +41,31 @@ public sealed class TicketCreatedConsumer
         {
             EventId = ticket.EventId,
             TicketId = ticket.TicketId,
-             = ticket.CreatorId,
-            Title = "New Ticket successfully created.",
-            Message = $"Ticket Created: {ticket.TicketTitle}",
-            IsRead = false,
+            Title = "New ticket created",
+            Message = $"Ticket created: {ticket.TicketTitle}",
             CreatedAt = DateTime.UtcNow
         };
 
-        _dbContext.Notifications.Add(notification);
+        var inbox = new Inbox
+        {
+            UserId = ticket.CreatorId,
+            IsRead = false,
+            DeliveredAt = DateTime.UtcNow,
+            Notification = notification
+        };
 
-        await _dbContext.SaveChangesAsync();
+        await using var transaction =
+            await _dbContext.Database.BeginTransactionAsync(
+                context.CancellationToken);
+
+        _dbContext.Notifications.Add(notification);
+        _dbContext.Inboxes.Add(inbox);
+
+        await _dbContext.SaveChangesAsync(
+            context.CancellationToken);
+
+        await transaction.CommitAsync(
+            context.CancellationToken);
 
         _logger.LogInformation(
             "Notification {NotificationId} saved for ticket {TicketId}.",
