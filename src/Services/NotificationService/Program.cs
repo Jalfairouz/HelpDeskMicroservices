@@ -5,6 +5,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NotificationService.Consumers;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +20,7 @@ builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<TicketCreatedConsumer>();
     x.AddConsumer<TicketAssignedConsumer>();
-
+    x.AddConsumer<TicketStatusChangedConsumer>();
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(
@@ -43,6 +44,10 @@ builder.Services.AddMassTransit(x =>
         cfg.ReceiveEndpoint("notification.ticket-assigned", e =>
         {
             e.ConfigureConsumer<TicketAssignedConsumer>(context);
+        });
+        cfg.ReceiveEndpoint("notification.ticket-changed-status", e =>
+        {
+            e.ConfigureConsumer<TicketStatusChangedConsumer>(context);
         });
     });
 });

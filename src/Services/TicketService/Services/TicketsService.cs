@@ -250,6 +250,7 @@ public class TicketsService : ITicketsService
         }
 
         var newStatus = request.Status;
+        var oldStatus = ticket.Status;
 
         if (role == RoleNames.Technician)
         {
@@ -312,6 +313,15 @@ public class TicketsService : ITicketsService
         await _unitOfWork.TicketHistories.AddAsync(history);
 
         await _unitOfWork.SaveChangesAsync();
+        await _publishEndpoint.Publish(new TicketStatusChangedEvent
+        {
+            EventId = Guid.NewGuid(),
+            TicketId = ticket.Id,
+            TicketTitle = ticket.Title,
+            OldStatus = oldStatus.ToString(),
+            NewStatus = newStatus.ToString(),
+            CreatorId = ticket.CreatedByUserId
+        });
 
         return CreateResponse(ticket);
     }
