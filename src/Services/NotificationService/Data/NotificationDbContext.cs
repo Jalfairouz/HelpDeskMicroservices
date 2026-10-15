@@ -19,19 +19,14 @@ public sealed class NotificationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
         modelBuilder.Entity<Notification>(entity =>
         {
             entity.HasKey(n => n.Id);
+            entity.Property(n => n.Title).IsRequired();
+            entity.Property(n => n.Message).IsRequired();
+            entity.Property(n => n.Audience).IsRequired().HasMaxLength(50);
 
-            entity.Property(n => n.Title)
-                .IsRequired();
-
-            entity.Property(n => n.Message)
-                .IsRequired();
-
-            entity.HasIndex(n => n.EventId)
-                .IsUnique();
+            entity.HasIndex(n => new { n.EventId, n.Audience }).IsUnique();
         });
 
         modelBuilder.Entity<Inbox>(entity =>

@@ -1,94 +1,42 @@
-﻿using HelpDesk.NotificationService.Data;
-using IntegrationContracts.Events;
+﻿using IntegrationContracts.Events;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
-using NotificationService.Models;
+using NotificationService.Services;
 
 namespace NotificationService.Consumers;
 
-public sealed class TicketAssignedConsumer
-    : IConsumer<TicketAssignedEvent>
+public sealed class TicketAssignedConsumer : IConsumer<TicketAssignedEvent>
 {
-    private readonly NotificationDbContext _dbContext;
-    private readonly ILogger<TicketAssignedConsumer> _logger;
+    private readonly INotificationDispatcher _dispatcher;
 
-    public TicketAssignedConsumer(
-        NotificationDbContext dbContext,
-        ILogger<TicketAssignedConsumer> logger)
+    public TicketAssignedConsumer(INotificationDispatcher dispatcher)
+        => _dispatcher = dispatcher;
+
+    public Task Consume(ConsumeContext<TicketAssignedEvent> context)
     {
-        _dbContext = dbContext;
-        _logger = logger;
-    }
+        var m = context.Message;
 
-    public async Task Consume(
-        ConsumeContext<TicketAssignedEvent> context)
-    {
-        var message = context.Message;
-
-        _logger.LogInformation(
-            "Assignment event received. Ticket={TicketId}, Assignee={AssigneeId}",
-            message.TicketId,
-            message.AssigneeId);
-
-        if (message.AssigneeId == Guid.Empty)
-        {
-            _logger.LogError(
-                "Cannot create notification: AssigneeId is empty for ticket {TicketId}",
-                message.TicketId);
-
+        if (m.AssigneeId == Guid.Empty)
             throw new InvalidOperationException(
                 "TicketAssignedEvent has an invalid AssigneeId.");
-        }
 
-        var eventId = context.MessageId
-            ?? throw new InvalidOperationException(
-                "The assignment event must have a message ID.");
+        var creatorRecipients = m.CreatorId == m.AssignedByUserId
+            ? Array.Empty<Guid>()
+            : new[] { m.CreatorId };
 
-        if (await _dbContext.Notifications.AnyAsync(
-                n => n.EventId == eventId,
-                context.CancellationToken))
-        {
-            _logger.LogInformation(
-                "Event {EventId} has already been processed.",
-                eventId);
+        return _dispatcher.DispatchAsync(m.EventId, m.TicketId,
+        [
+            new NotificationDraft(
+                "assignee",
+                "Ticket assigned",
+                $"Ticket '{m.TicketTitle}' has been assigned to you.",
+                new[] { m.AssigneeId }),
 
-            return;
-        }
-
-        await using var transaction =
-            await _dbContext.Database.BeginTransactionAsync(
-                context.CancellationToken);
-
-        var notification = new Notification
-        {
-            EventId = eventId,
-            TicketId = message.TicketId,
-            Title = "Ticket assigned",
-            Message = $"Ticket '{message.TicketTitle}' has been assigned to you.",
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var inbox = new Inbox
-        {
-            Notification = notification,
-            UserId = message.AssigneeId,
-            IsRead = false,
-            DeliveredAt = DateTime.UtcNow
-        };
-
-        _dbContext.Notifications.Add(notification);
-        _dbContext.Inboxes.Add(inbox);
-
-        await _dbContext.SaveChangesAsync(
-            context.CancellationToken);
-
-        await transaction.CommitAsync(
-            context.CancellationToken);
-
-        _logger.LogInformation(
-            "Notification saved. InboxId={InboxId}, UserId={UserId}, TicketId={TicketId}",
-            inbox.Id,
-            inbox.UserId,
-            message.TicketId);
+            new NotificationDraft(
+                "creator",
+                "Your ticket was assigned",
+                $"A technician has been assigned to your ticket '{m.TicketTitle}'.",
+                creatorRecipients)
+        ],
+        context.CancellationToken);
     }
 }

@@ -9,16 +9,18 @@ using TicketService.Repositories;
 using TicketService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+var rabbit = builder.Configuration.GetSection("RabbitMq");
+
 builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
+        cfg.Host(rabbit["Host"] ?? "localhost", rabbit["VirtualHost"] ?? "/", h =>
         {
-            h.Username("kalo");
-            h.Password("kalo");
+            h.Username(rabbit["Username"] ?? "helpdesk");
+            h.Password(rabbit["Password"]
+                ?? throw new InvalidOperationException("RabbitMQ password is missing."));
         });
-
     });
 });
 builder.Services.AddControllers().AddJsonOptions(options =>

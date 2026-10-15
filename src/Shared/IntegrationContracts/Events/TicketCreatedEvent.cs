@@ -6,4 +6,5 @@ public sealed record TicketCreatedEvent
     public Guid TicketId { get; init; }
     public string TicketTitle { get; init; } = string.Empty;
     public Guid CreatorId { get; init; }
+    public Guid? AssignedTechnicianId { get; init; }
 }

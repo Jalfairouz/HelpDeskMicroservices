@@ -6,6 +6,8 @@ public class Notification
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public Guid EventId { get; set; }
+    public string Audience { get; set; } = string.Empty;
+
 
     public Guid TicketId { get; set; }
 

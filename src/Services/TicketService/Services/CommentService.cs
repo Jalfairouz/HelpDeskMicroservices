@@ -1,4 +1,6 @@
-﻿using TicketService.Domain;
+﻿using IntegrationContracts.Events;
+using MassTransit;
+using TicketService.Domain;
 using TicketService.DTOs.Requests;
 using TicketService.DTOs.Responses;
 using TicketService.Models;
@@ -10,11 +12,13 @@ public class CommentService : ICommentService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManagementClient _userManagementClient;
-    public CommentService(IUnitOfWork unitOfWork, UserManagementClient userManagementClient)
+    private readonly IPublishEndpoint _publishEndpoint;
+
+    public CommentService(IUnitOfWork unitOfWork, UserManagementClient userManagementClient, IPublishEndpoint publishEndpoint)
     {
         _unitOfWork = unitOfWork;
         _userManagementClient = userManagementClient;
-
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<CommentResponse> AddAsync(Guid ticketId, AddCommentRequest request,Guid authorUserId)
@@ -47,7 +51,19 @@ public class CommentService : ICommentService
         await _unitOfWork.TicketHistories.AddAsync(history);
 
         await _unitOfWork.SaveChangesAsync();
+        var ticket = await _unitOfWork.Tickets.GetByIdAsync(ticketId);
 
+        if (ticket is not null)
+        {
+            await _publishEndpoint.Publish(new CommentAddedEvent
+            {
+                TicketId = ticket.Id,
+                TicketTitle = ticket.Title,
+                CreatorId = ticket.CreatedByUserId,
+                AssignedTechnicianId = ticket.AssignedTechnicianId,
+                AuthorId = authorUserId
+            });
+        }
         return MapToResponse(comment);
     }
 

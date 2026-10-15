@@ -83,12 +83,13 @@ public class AssignmentService : IAssignmentService
         });
 
         await _unitOfWork.SaveChangesAsync();
-        await _publishEndpoint.Publish<TicketAssignedEvent>(new
+        await _publishEndpoint.Publish(new TicketAssignedEvent
         {
             TicketId = ticket.Id,
             TicketTitle = ticket.Title,
-            AssigneeId = ticket.AssignedTechnicianId,
-            CreatorId = ticket.CreatedByUserId
+            AssigneeId = technicianId,
+            CreatorId = ticket.CreatedByUserId,
+            AssignedByUserId = adminUserId
         });
 
         return new TicketResponse

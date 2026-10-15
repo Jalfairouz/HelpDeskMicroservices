@@ -63,14 +63,13 @@ public class TicketsService : ITicketsService
         }
 
         await _unitOfWork.SaveChangesAsync();
-        //Notification Creating
 
         await _publishEndpoint.Publish(new TicketCreatedEvent
         {
-            EventId = Guid.NewGuid(),
             TicketId = ticket.Id,
             TicketTitle = ticket.Title,
-            CreatorId = ticket.CreatedByUserId
+            CreatorId = ticket.CreatedByUserId,
+            AssignedTechnicianId = ticket.AssignedTechnicianId
         });
         return CreateResponse(ticket);
         
@@ -315,12 +314,13 @@ public class TicketsService : ITicketsService
         await _unitOfWork.SaveChangesAsync();
         await _publishEndpoint.Publish(new TicketStatusChangedEvent
         {
-            EventId = Guid.NewGuid(),
             TicketId = ticket.Id,
             TicketTitle = ticket.Title,
+            CreatorId = ticket.CreatedByUserId,
+            AssignedTechnicianId = ticket.AssignedTechnicianId,
+            ChangedByUserId = userId,
             OldStatus = oldStatus.ToString(),
-            NewStatus = newStatus.ToString(),
-            CreatorId = ticket.CreatedByUserId
+            NewStatus = newStatus.ToString()
         });
 
         return CreateResponse(ticket);

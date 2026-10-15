@@ -59,6 +59,11 @@ namespace NotificationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Audience")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -78,7 +83,7 @@ namespace NotificationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventId")
+                    b.HasIndex("EventId", "Audience")
                         .IsUnique();
 
                     b.ToTable("Notifications");
