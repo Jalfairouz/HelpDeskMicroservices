@@ -51,15 +51,12 @@ public sealed class NotificationDispatcher : INotificationDispatcher
             if (recipients.Count == 0)
                 continue;
 
-            var alreadyProcessed = await _db.Notifications.AnyAsync(
-                n => n.EventId == eventId && n.Audience == draft.Audience,
+            var alreadyProcessed = await _db.Notifications.AnyAsync(  n => n.EventId == eventId && n.Audience == draft.Audience,
                 cancellationToken);
 
             if (alreadyProcessed)
             {
-                _logger.LogInformation(
-                    "Event {EventId} ({Audience}) already processed.",
-                    eventId, draft.Audience);
+                _logger.LogInformation("Event {EventId} ({Audience}) already processed.",eventId, draft.Audience);
                 continue;
             }
 
@@ -117,14 +114,11 @@ public sealed class NotificationDispatcher : INotificationDispatcher
             try
             {
                 await _hub.Clients
-                    .User(inbox.UserId.ToString())
-                    .SendAsync(ReceiveMethod, dto, cancellationToken);
+                    .User(inbox.UserId.ToString()).SendAsync(ReceiveMethod, dto, cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex,
-                    "Failed to push notification {InboxId} to user {UserId}.",
-                    inbox.Id, inbox.UserId);
+                _logger.LogWarning(ex, "Failed to push notification {InboxId} to user {UserId}.", inbox.Id, inbox.UserId);
             }
         }
     }
