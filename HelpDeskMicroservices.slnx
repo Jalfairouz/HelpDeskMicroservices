@@ -4,6 +4,7 @@
     <Project Path="src/Gateway/ApiGateway/ApiGateway.csproj" />
   </Folder>
   <Folder Name="/src/Services/">
+    <Project Path="src/Services/LoggingService/LoggingService.csproj" />
     <Project Path="src/Services/NotificationService/NotificationService.csproj" />
     <Project Path="src/Services/TicketService/TicketService.csproj" />
     <Project Path="src/Services/UserManagementService/UserManagementService.csproj" />
