@@ -73,6 +73,7 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<TechnicianQueryService>();
+builder.Services.AddScoped<DirectoryQueryService>();
 
 var app = builder.Build();
 

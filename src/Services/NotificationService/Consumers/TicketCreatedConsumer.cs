@@ -7,26 +7,45 @@ namespace NotificationService.Consumers;
 public sealed class TicketCreatedConsumer : IConsumer<TicketCreatedEvent>
 {
     private readonly INotificationDispatcher _dispatcher;
+    private readonly IUserDirectory _directory;
 
-    public TicketCreatedConsumer(INotificationDispatcher dispatcher)
-        => _dispatcher = dispatcher;
+    public TicketCreatedConsumer(INotificationDispatcher dispatcher, IUserDirectory directory)
+    {
+        _dispatcher = dispatcher;
+        _directory = directory;
+    }
 
-    public Task Consume(ConsumeContext<TicketCreatedEvent> context)
+    public async Task Consume(ConsumeContext<TicketCreatedEvent> context)
     {
         var m = context.Message;
+        var ct = context.CancellationToken;
 
-        var recipients = m.AssignedTechnicianId is { } technicianId
-            ? new[] { technicianId }
-            : Array.Empty<Guid>();
+        var names = await _directory.GetNamesAsync(new[] { m.CreatorId }, ct);
+        var creator = names.NameOf(m.CreatorId);
 
-        return _dispatcher.DispatchAsync(m.EventId, m.TicketId,
-        [
-            new NotificationDraft(
+        NotificationDraft draft;
+
+        if (m.AssignedTechnicianId is { } technicianId)
+        {
+            draft = new NotificationDraft(
                 "assignee",
                 "New ticket assigned to you",
-                $"Ticket '{m.TicketTitle}' was assigned to you.",
-                recipients)
-        ],
-        context.CancellationToken);
+                $"{creator} created: {m.TicketTitle}",
+                new[] { technicianId });
+        }
+        else
+        {
+            var admins = (await _directory.GetAdminIdsAsync(ct))
+                .Where(id => id != m.CreatorId)
+                .ToList();
+
+            draft = new NotificationDraft(
+                "admins",
+                "Ticket needs assignment",
+                $"{creator} created a ticket with no available technician: {m.TicketTitle}",
+                admins);
+        }
+
+        await _dispatcher.DispatchAsync(m.EventId, m.TicketId, new[] { draft }, ct);
     }
 }

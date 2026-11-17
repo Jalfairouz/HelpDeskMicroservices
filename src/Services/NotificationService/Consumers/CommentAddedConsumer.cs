@@ -7,26 +7,37 @@ namespace NotificationService.Consumers;
 public sealed class CommentAddedConsumer : IConsumer<CommentAddedEvent>
 {
     private readonly INotificationDispatcher _dispatcher;
+    private readonly IUserDirectory _directory;
 
-    public CommentAddedConsumer(INotificationDispatcher dispatcher)
-        => _dispatcher = dispatcher;
+    public CommentAddedConsumer(INotificationDispatcher dispatcher, IUserDirectory directory)
+    {
+        _dispatcher = dispatcher;
+        _directory = directory;
+    }
 
-    public Task Consume(ConsumeContext<CommentAddedEvent> context)
+    public async Task Consume(ConsumeContext<CommentAddedEvent> context)
     {
         var m = context.Message;
+        var ct = context.CancellationToken;
 
         var recipients = new[] { (Guid?)m.CreatorId, m.AssignedTechnicianId }
             .Where(id => id.HasValue && id.Value != m.AuthorId)
-            .Select(id => id!.Value);
+            .Select(id => id!.Value)
+            .ToList();
 
-        return _dispatcher.DispatchAsync(m.EventId, m.TicketId,
+        if (recipients.Count == 0)
+            return;
+
+        var names = await _directory.GetNamesAsync(new[] { m.AuthorId }, ct);
+
+        await _dispatcher.DispatchAsync(m.EventId, m.TicketId,
         [
             new NotificationDraft(
                 "participants",
                 "New comment",
-                $"A new comment was added on ticket '{m.TicketTitle}'.",
+                $"{names.NameOf(m.AuthorId)} commented on: {m.TicketTitle}",
                 recipients)
         ],
-        context.CancellationToken);
+        ct);
     }
 }

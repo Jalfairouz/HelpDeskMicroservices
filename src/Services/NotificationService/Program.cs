@@ -16,7 +16,16 @@ builder.Services.AddDbContext<NotificationDbContext>(options =>
 
 builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
 builder.Services.AddSignalR();
+var userManagementUrl = builder.Configuration["Services:UserManagementService"]
+    ?? throw new InvalidOperationException("UserManagementService URL is not configured.");
 
+builder.Services.AddMemoryCache();
+
+builder.Services.AddHttpClient<IUserDirectory, UserDirectory>(client =>
+{
+    client.BaseAddress = new Uri(userManagementUrl);
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 var rabbit = builder.Configuration.GetSection("RabbitMq");
 
 builder.Services.AddMassTransit(x =>
