@@ -42,6 +42,43 @@ public class UserManagementClient
             return [];
         }
     }
+    public async Task<List<UserNameResponse>> GetNamesAsync(IEnumerable<Guid> ids)
+    {
+        var idList = ids.Distinct().ToList();
+
+        if (idList.Count == 0)
+        {
+            return [];
+        }
+
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/internal/users/lookup", new { ids = idList });
+
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<List<UserNameResponse>>() ?? [];
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "UserManagementService is unavailable.");
+
+            return [];
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogWarning(ex, "UserManagementService request timed out.");
+
+            return [];
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Invalid names response.");
+
+            return [];
+        }
+    }
+
     public async Task<UserResponse?> GetUserByIdAsync(Guid userId)
     {
         try

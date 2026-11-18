@@ -14,9 +14,11 @@ public class AssignmentService : IAssignmentService
     private readonly ITicketRepository _ticketRepository;
     private readonly UserManagementClient _userManagementClient;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IUserNameResolver _nameResolver;
 
-    public AssignmentService(IUnitOfWork unitOfWork, ITicketRepository ticketRepository, UserManagementClient userManagementClient, IPublishEndpoint publishEndpoint)
+    public AssignmentService(IUnitOfWork unitOfWork, ITicketRepository ticketRepository, UserManagementClient userManagementClient, IPublishEndpoint publishEndpoint, IUserNameResolver nameResolver)
     {
+        _nameResolver = nameResolver;
         _unitOfWork = unitOfWork;
         _ticketRepository = ticketRepository;
         _userManagementClient = userManagementClient;
@@ -92,8 +94,14 @@ public class AssignmentService : IAssignmentService
             AssignedByUserId = adminUserId
         });
 
+        var creatorNames = await _nameResolver.ResolveAsync([ticket.CreatedByUserId]);
+
         return new TicketResponse
         {
+            CreatedByName = creatorNames.TryGetValue(ticket.CreatedByUserId, out var creatorName)
+                ? creatorName
+                : UserNameResolver.UnknownUser,
+            AssignedTechnicianName = technician.DisplayName,
             Id = ticket.Id,
             Title = ticket.Title,
             Description = ticket.Description,

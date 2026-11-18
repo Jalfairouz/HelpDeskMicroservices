@@ -48,6 +48,12 @@ public class InternalUsersController : ControllerBase
     public async Task<ActionResult<UserResponseExternal>> GetUserDetails(Guid userId)
     {
         var user = await _userService.GetUserDetails(userId);
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+
         return Ok(user);
     }
 }

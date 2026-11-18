@@ -44,6 +44,8 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();
 
 var userManagementUrl =
     builder.Configuration["Services:UserManagementService"]

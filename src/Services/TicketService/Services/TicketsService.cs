@@ -13,12 +13,28 @@ public class TicketsService : ITicketsService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAssignmentService _assignmentService;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IUserNameResolver _nameResolver;
 
-    public TicketsService(  IUnitOfWork unitOfWork, IAssignmentService assignmentService, IPublishEndpoint publishEndpoint)
+    public TicketsService(  IUnitOfWork unitOfWork, IAssignmentService assignmentService, IPublishEndpoint publishEndpoint, IUserNameResolver nameResolver)
     {
         _unitOfWork = unitOfWork;
         _assignmentService = assignmentService;
         _publishEndpoint = publishEndpoint;
+        _nameResolver = nameResolver;
+    }
+
+    private async Task<TicketResponse> ToResponseAsync(Ticket ticket)
+    {
+        var response = CreateResponse(ticket);
+        await _nameResolver.EnrichAsync([response]);
+        return response;
+    }
+
+    private async Task<List<TicketResponse>> ToResponsesAsync(IEnumerable<Ticket> tickets)
+    {
+        var responses = tickets.Select(CreateResponse).ToList();
+        await _nameResolver.EnrichAsync(responses);
+        return responses;
     }
 
     public async Task<TicketResponse> CreateAsync(CreateTicketRequest request,Guid createdByUserId)
@@ -71,7 +87,7 @@ public class TicketsService : ITicketsService
             CreatorId = ticket.CreatedByUserId,
             AssignedTechnicianId = ticket.AssignedTechnicianId
         });
-        return CreateResponse(ticket);
+        return await ToResponseAsync(ticket);
         
     }
 
@@ -84,19 +100,19 @@ public class TicketsService : ITicketsService
             status: filter.Status,
             unassigned: filter.Unassigned);
 
-        return tickets.Select(CreateResponse).ToList();
+        return await ToResponsesAsync(tickets);
     }
 
     public async Task<IEnumerable<TicketResponse>> GetSystemTicketsAsync(Guid adminId, TicketFilter filter)
     {
         var tickets = await _unitOfWork.Tickets.GetListAsync(
             createdByUserId: null,
-            excludeCreatedByUserId: adminId,
+            excludeCreatedByUserId: null,
             assignedTechnicianId: null,
             status: filter.Status,
             unassigned: filter.Unassigned);
 
-        return tickets.Select(CreateResponse).ToList();
+        return await ToResponsesAsync(tickets);
     }
 
     public async Task<IEnumerable<TicketResponse>> GetAssignedTicketsAsync(Guid technicianId)
@@ -108,7 +124,7 @@ public class TicketsService : ITicketsService
             status: null,
             unassigned: null);
 
-        return tickets.Select(CreateResponse).ToList();
+        return await ToResponsesAsync(tickets);
     }
     public async Task<TicketResponse?> GetByIdAsync(Guid ticketId, Guid userId, string role)
     {
@@ -139,7 +155,7 @@ public class TicketsService : ITicketsService
 
         var history =
             await _unitOfWork.TicketHistories.GetByTicketIdAsync(ticketId);
-        return CreateResponse(ticket);
+        return await ToResponseAsync(ticket);
         //return new TicketDetailsResponse
         //{
         //    Id = ticket.Id,
@@ -236,7 +252,7 @@ public class TicketsService : ITicketsService
 
         await _unitOfWork.SaveChangesAsync();
 
-        return CreateResponse(ticket);
+        return await ToResponseAsync(ticket);
     }
 
     public async Task<TicketResponse?> ChangeStatusAsync( Guid ticketId,ChangeTicketStatusRequest request, Guid userId,string role)
@@ -323,7 +339,7 @@ public class TicketsService : ITicketsService
             NewStatus = newStatus.ToString()
         });
 
-        return CreateResponse(ticket);
+        return await ToResponseAsync(ticket);
     }
 
     public async Task<IEnumerable<TicketHistoryResponse>?> GetHistoryAsync(Guid ticketId,Guid userId, string role)
@@ -338,15 +354,28 @@ public class TicketsService : ITicketsService
 
         var history = await _unitOfWork.TicketHistories.GetByTicketIdAsync(ticketId);
 
-        ;return history.Select(item =>
+        var items = history.Select(item =>
             new TicketHistoryResponse
             {
                 Id = item.Id,
                 TicketId = item.TicketId,
-                PerformedByUserId = item.PerformedByUserId == Guid.Empty ? "System" : item.PerformedByUserId.ToString(), 
+                PerformedByUserId = item.PerformedByUserId is null || item.PerformedByUserId == Guid.Empty
+                    ? "System"
+                    : item.PerformedByUserId.ToString()!,
                 ActionType = item.ActionType,
                 CreatedAt = item.CreatedAt.ToString()
-            });
+            }).ToList();
+
+        var names = await _nameResolver.ResolveAsync(history.Select(item => item.PerformedByUserId));
+
+        foreach (var item in items)
+        {
+            item.PerformedByName = Guid.TryParse(item.PerformedByUserId, out var performedBy)
+                ? names.TryGetValue(performedBy, out var name) ? name : UserNameResolver.UnknownUser
+                : UserNameResolver.SystemName;
+        }
+
+        return items;
     }
 
     public async Task<bool> DeleteAsync(Guid ticketId)

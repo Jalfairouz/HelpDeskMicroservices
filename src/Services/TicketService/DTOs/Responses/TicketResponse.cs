@@ -19,8 +19,10 @@ public class TicketResponse
     public TicketStatus Status { get; set; }
 
     public Guid CreatedByUserId { get; set; }
+    public string CreatedByName { get; set; } = string.Empty;
 
     public Guid? AssignedTechnicianId { get; set; }
+    public string? AssignedTechnicianName { get; set; }
 
     public string CreatedAt { get; set; } = DateTime.Now.ToString("yyyy-dd-MM HH:mm:ss");
     public string? UpdatedAt { get; set; } = DateTime.Now.ToString("yyyy-dd-MM HH:mm:ss");

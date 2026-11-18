@@ -13,9 +13,11 @@ public class CommentService : ICommentService
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManagementClient _userManagementClient;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IUserNameResolver _nameResolver;
 
-    public CommentService(IUnitOfWork unitOfWork, UserManagementClient userManagementClient, IPublishEndpoint publishEndpoint)
+    public CommentService(IUnitOfWork unitOfWork, UserManagementClient userManagementClient, IPublishEndpoint publishEndpoint, IUserNameResolver nameResolver)
     {
+        _nameResolver = nameResolver;
         _unitOfWork = unitOfWork;
         _userManagementClient = userManagementClient;
         _publishEndpoint = publishEndpoint;
@@ -64,29 +66,26 @@ public class CommentService : ICommentService
                 AuthorId = authorUserId
             });
         }
-        return MapToResponse(comment);
+        var response = MapToResponse(comment);
+        await _nameResolver.EnrichAsync([response]);
+        return response;
     }
 
     public async Task<IEnumerable<CommentResponse>>GetByTicketIdAsync(Guid ticketId)
     {
         var comments = await _unitOfWork.Comments.GetByTicketIdAsync(ticketId);
 
-        var result = new List<CommentResponse>();
-
-        foreach (var comment in comments)
+        var result = comments.Select(comment => new CommentResponse
         {
-            var user = await _userManagementClient.GetUserByIdAsync(comment.AuthorUserId);
+            Id = comment.Id,
+            TicketId = comment.TicketId,
+            AuthorUserId = comment.AuthorUserId,
+            Content = comment.Content,
+            CreatedAt = comment.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
+        }).ToList();
 
-             result.Add(new CommentResponse
-            {
-                Id = comment.Id,
-                TicketId = comment.TicketId,
-                AuthorUserId = comment.AuthorUserId,
-                AuthorName = user?.FullName ?? "Unknown User",
-                Content = comment.Content,
-                CreatedAt = comment.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
-            });
-        }
+        await _nameResolver.EnrichAsync(result);
+
         return result;
     }
 
